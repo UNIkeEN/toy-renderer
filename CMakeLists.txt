@@ -6,17 +6,23 @@ set(CMAKE_CXX_STANDARD 17)
 add_subdirectory(${PROJECT_SOURCE_DIR}/deps/glad)
 add_subdirectory(${PROJECT_SOURCE_DIR}/deps/glfw)
 add_subdirectory(${PROJECT_SOURCE_DIR}/deps/glm)
-file(GLOB IMGUI_SOURCES ${PROJECT_SOURCE_DIR}/deps/imgui/*.cpp)
+file(GLOB IMGUI_SOURCES 
+    ${PROJECT_SOURCE_DIR}/deps/imgui/*.cpp
+    ${PROJECT_SOURCE_DIR}/deps/imgui/backends/imgui_impl_glfw.cpp
+    ${PROJECT_SOURCE_DIR}/deps/imgui/backends/imgui_impl_opengl3.cpp
+)
 add_library(imgui STATIC ${IMGUI_SOURCES})
-target_include_directories(imgui PUBLIC ${PROJECT_SOURCE_DIR}/deps/imgui)
+target_include_directories(imgui PUBLIC 
+    ${PROJECT_SOURCE_DIR}/deps/imgui
+    ${PROJECT_SOURCE_DIR}/deps/imgui/backends
+    ${PROJECT_SOURCE_DIR}/deps/glfw/include
+)
+
+# load vulkan
+find_package(Vulkan REQUIRED)
 
 # add source code
 add_executable(${PROJECT_NAME})
 add_subdirectory(${PROJECT_SOURCE_DIR}/src)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE glad glfw glm imgui)
-
-# cd build
-# cmake -G "Visual Studio 17" -A x64 ..
-# cmake --build . --config Release -- /verbosity:minimal
-
+target_link_libraries(${PROJECT_NAME} PRIVATE glad glfw glm imgui Vulkan::Vulkan)
