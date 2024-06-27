@@ -26,21 +26,6 @@ ShaderProgram::ShaderProgram(const std::string& vertexPath, const std::string& f
     glDeleteShader(fragmentShader);
 }
 
-ShaderProgram::~ShaderProgram() {
-    cleanup();
-}
-
-void ShaderProgram::use() const {
-    glUseProgram(mProgram);
-}
-
-void ShaderProgram::cleanup() {
-    if (mProgram) {
-        glDeleteProgram(mProgram);
-        mProgram = 0;
-    }
-}
-
 GLuint ShaderProgram::loadShader(const std::string& path, GLenum type) {
     std::ifstream file;
     std::stringstream buffer;
@@ -69,4 +54,39 @@ GLuint ShaderProgram::loadShader(const std::string& path, GLenum type) {
     }
 
     return shader;
+}
+
+ShaderProgram::~ShaderProgram() {
+    cleanup();
+}
+
+void ShaderProgram::cleanup() {
+    if (mProgram) {
+        glDeleteProgram(mProgram);
+        mProgram = 0;
+    }
+}
+
+void ShaderProgram::use() const {
+    glUseProgram(mProgram);
+}
+
+void ShaderProgram::setBool(const std::string &name, bool value) const {
+    glUniform1i(glGetUniformLocation(mProgram, name.c_str()), (int)value);
+}
+
+void ShaderProgram::setInt(const std::string &name, int value) const {
+    glUniform1i(glGetUniformLocation(mProgram, name.c_str()), value);
+}
+
+void ShaderProgram::setFloat(const std::string &name, float value) const {
+    glUniform1f(glGetUniformLocation(mProgram, name.c_str()), value);
+}
+
+void ShaderProgram::setVec3(const std::string &name, const glm::vec3 &value) const {
+    glUniform3fv(glGetUniformLocation(mProgram, name.c_str()), 1, glm::value_ptr(value));
+}
+
+void ShaderProgram::setMat4(const std::string &name, const glm::mat4 &mat) const {
+    glUniformMatrix4fv(glGetUniformLocation(mProgram, name.c_str()), 1, GL_FALSE, glm::value_ptr(mat));
 }
