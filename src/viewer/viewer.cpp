@@ -58,11 +58,12 @@ void Viewer::mainLoop() {
 
         // TODO: Render UI
 
+        // Render scene
         if (mRender) {
             mRender->render();
         }
 
-        // Rendering ImGui
+        // Render ImGui
         ImGui::Render();
         int display_w, display_h;
         glfwGetFramebufferSize(mWindow, &display_w, &display_h);
