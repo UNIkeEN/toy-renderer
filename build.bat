@@ -10,4 +10,3 @@ cmake --build . --config Release -- /verbosity:minimal
 cd ..
 
 endlocal
-echo Build Completed.
