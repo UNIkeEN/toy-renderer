@@ -1,12 +1,12 @@
 #include <glad/glad.h>
 #include "viewer/viewer.h"
-#include "render/OpenGLRender.hpp"
+#include "render/render_OpenGL.h"
 
 int main() {
 
-    std::shared_ptr<Render> _render = std::make_shared<OpenGLRender>();
+    std::shared_ptr<Render> renderer = std::make_shared<OpenGLRender>();
 
-    Viewer viewer(800, 600, _render, nullptr);
+    Viewer viewer(800, 600, renderer, nullptr);
     viewer.init();
     viewer.mainLoop();
     viewer.cleanup();

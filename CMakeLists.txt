@@ -17,6 +17,7 @@ target_include_directories(imgui PUBLIC
     ${PROJECT_SOURCE_DIR}/deps/imgui/backends
     ${PROJECT_SOURCE_DIR}/deps/glfw/include
 )
+include_directories(${PROJECT_SOURCE_DIR}/deps)
 
 # load vulkan
 find_package(Vulkan REQUIRED)
