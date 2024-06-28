@@ -21,7 +21,7 @@ void OpenGLRender::init() {
         throw std::runtime_error("Failed to initialize GLAD");
     }
 
-    mShader = std::make_unique<ShaderProgram>("../shaders/OpenGL/vertex.glsl", "../shaders/OpenGL/fragment.glsl");
+    mShader = std::make_unique<ShaderProgram>("../src/shaders/OpenGL/vertex.glsl", "../src/shaders/OpenGL/fragment.glsl");
     mShader->use();
 }
 
@@ -62,16 +62,22 @@ void OpenGLRender::setupBuffers(const std::shared_ptr<Scene>& scene) {
         glBindBuffer(GL_ARRAY_BUFFER, mVBOs[i]);
         glBufferData(GL_ARRAY_BUFFER, bufferData.size() * sizeof(float), bufferData.data(), GL_STATIC_DRAW);
 
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, (normals.empty() ? 3 : 8) * sizeof(float), (void*)0);
+        size_t stride = 3;
+        if (!normals.empty()) stride += 3;
+        if (!texCoords.empty()) stride += 2;
+
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)0);
         glEnableVertexAttribArray(0);
+        size_t offset = 3 * sizeof(float);
 
         if (!normals.empty()) {
-            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)offset);
             glEnableVertexAttribArray(1);
+            offset += 3 * sizeof(float);
         }
 
         if (!texCoords.empty()) {
-            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)offset);
             glEnableVertexAttribArray(2);
         }
 
