@@ -4,7 +4,7 @@
 #include <iostream>
 
 Viewer::Viewer(int width, int height, std::shared_ptr<Render> render, std::shared_ptr<Camera> camera)
-    : mWidth(width), mHeight(height), mWindow(nullptr), mRender(render), mCamera(camera),
+    : mWidth(width), mHeight(height), mWindow(nullptr), mRender(std::move(render)), mCamera(std::move(camera)),
       mFirstMouse(true), mLastX(width / 2.0f), mLastY(height / 2.0f), mDeltaTime(0.0f), mLastFrame(0.0f),
       mMovementSpeed(10.0f), mMouseSensitivity(0.1f) {}
 
@@ -68,7 +68,7 @@ void Viewer::init() {
 
 void Viewer::mainLoop() {
     while (!glfwWindowShouldClose(mWindow)) {
-        float currentFrame = glfwGetTime();
+        double currentFrame = glfwGetTime();
         mDeltaTime = currentFrame - mLastFrame;
         mLastFrame = currentFrame;
 
@@ -94,9 +94,6 @@ void Viewer::mainLoop() {
 
         // Render ImGui
         ImGui::Render();
-        int _width, _height;
-        glfwGetFramebufferSize(mWindow, &_width, &_height);
-        glViewport(0, 0, _width, _height);
         if (mRender->getType() == RENDERER_TYPE::OpenGL) {
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         } else if (mRender->getType() == RENDERER_TYPE::Vulkan) {
