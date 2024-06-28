@@ -1,5 +1,10 @@
 build/
+cmake-build-debug/
+assets/
+
+# IDE configs
 .vscode/
+.idea/
 
 # Prerequisites
 *.d
