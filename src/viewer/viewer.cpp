@@ -1,12 +1,12 @@
 #include "viewer.h"
 #include "camera.h"
-#include "render/render.h"
 #include <iostream>
 
 Viewer::Viewer(int width, int height, std::shared_ptr<Render> render, std::shared_ptr<Camera> camera)
     : mWidth(width), mHeight(height), mWindow(nullptr), mRender(std::move(render)), mCamera(std::move(camera)),
       mFirstMouse(true), mLastX((double) width / 2.0f), mLastY(height / 2.0f), mDeltaTime(0.0f), mLastFrame(0.0f),
-      mMovementSpeed(10.0f), mMouseSensitivity(0.1f) {}
+      mMovementSpeed(10.0f), mMouseSensitivity(0.1f), 
+      mWidgets(createAllWidgets()) {}
 
 Viewer::~Viewer() {
     cleanup();
@@ -58,6 +58,7 @@ void Viewer::init() {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.FontGlobalScale = 2.0f;
     ImGui::StyleColorsDark();
 
     if (mRender->getType() == RENDERER_TYPE::OpenGL) {
@@ -87,7 +88,9 @@ void Viewer::mainLoop() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        // TODO: Render UI
+        // Render UI
+        renderMainMenu();
+        renderWidgets();
 
         // Render scene
         if (mRender) {
@@ -110,6 +113,27 @@ void Viewer::mainLoop() {
     }
 }
 
+void Viewer::renderMainMenu() {
+    if (ImGui::BeginMainMenuBar()) {
+        if (ImGui::BeginMenu("View")) {
+            for (auto& widget : mWidgets) {
+                bool visible = widget->isVisible();
+                if (ImGui::MenuItem(widget->getName().c_str(), NULL, &visible)) {
+                    widget->toggle();
+                }
+            }
+            ImGui::EndMenu();
+        }
+        ImGui::EndMainMenuBar();
+    }
+}
+
+void Viewer::renderWidgets() {
+    for (auto& widget : mWidgets) {
+        widget->render(*this);
+    }
+}
+
 void Viewer::cleanup() {
     // Cleanup ImGui
     if (mRender->getType() == RENDERER_TYPE::OpenGL) {
@@ -129,6 +153,8 @@ void Viewer::cleanup() {
 }
 
 void Viewer::keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    if (ImGui::GetIO().WantCaptureKeyboard) return;
+
     if (action == GLFW_PRESS || action == GLFW_REPEAT) {
         if (key == GLFW_KEY_ESCAPE)
             glfwSetWindowShouldClose(window, GLFW_TRUE);
@@ -154,7 +180,7 @@ void Viewer::keyboardCallback(GLFWwindow* window, int key, int scancode, int act
 }
 
 void Viewer::mouseCallback(GLFWwindow* window, double xpos, double ypos) {
-    if (!mLeftMouseButtonPressed) return;
+    if (!mLeftMouseButtonPressed || ImGui::GetIO().WantCaptureMouse) return;
 
     if (mFirstMouse) {
         mLastX = xpos;
@@ -172,10 +198,14 @@ void Viewer::mouseCallback(GLFWwindow* window, double xpos, double ypos) {
 }
 
 void Viewer::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
+    if (ImGui::GetIO().WantCaptureMouse) return;
+
     mCamera->zoom(yoffset);   // Zoom in/out by changing FOV
 }
 
 void Viewer::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+    if (ImGui::GetIO().WantCaptureMouse) return;
+
     if (button == GLFW_MOUSE_BUTTON_LEFT) {
         if (action == GLFW_PRESS) {
             mLeftMouseButtonPressed = true;

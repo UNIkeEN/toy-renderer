@@ -8,6 +8,7 @@
 #include <imgui_impl_opengl3.h>
 // #include <imgui_impl_vulkan.h>
 #include "render/render.h"
+#include "widgets/widget.h"
 #include "camera.h"
 
 class Viewer {
@@ -22,7 +23,15 @@ public:
     [[nodiscard]] std::shared_ptr<Camera> getCamera() const { return mCamera; }
     void setCamera(const std::shared_ptr<Camera>& camera) { mCamera = camera; }
 
-private:
+    [[nodiscard]] int getWidth() const { return mWidth; }
+    [[nodiscard]] int getHeight() const { return mHeight; }
+    [[nodiscard]] double getDeltaTime() const { return mDeltaTime; }
+    void setMovementSpeed(float speed) { mMovementSpeed = speed; }
+    [[nodiscard]] float getMovementSpeed() const { return mMovementSpeed; }
+    void setMouseSensitivity(float sensitivity) { mMouseSensitivity = sensitivity; }
+    [[nodiscard]] float getMouseSensitivity() const { return mMouseSensitivity; }
+
+protected:
     int mWidth;
     int mHeight;
     GLFWwindow* mWindow;
@@ -44,4 +53,9 @@ private:
     void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
     void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
     void framebufferSizeCallback(GLFWwindow* window, int width, int height);
+
+    std::vector<std::shared_ptr<Widget>> mWidgets;  // ImGUI widgets
+
+    void renderMainMenu();
+    void renderWidgets();
 };
