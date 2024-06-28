@@ -3,8 +3,6 @@
 #include "stb_image.h"
 #include <iostream>
 
-OpenGLRender::OpenGLRender() {}
-
 OpenGLRender::~OpenGLRender() {
     cleanup();
     if (mShader) {
@@ -104,7 +102,7 @@ void OpenGLRender::render(const glm::mat4& viewMatrix, const glm::mat4& projecti
 
     mShader->use();
 
-    glm::mat4 modelMatrix = glm::mat4(1.0f);
+    auto modelMatrix = glm::mat4(1.0f);
     mShader->setMat4("model", modelMatrix);
     mShader->setMat4("view", viewMatrix);
     mShader->setMat4("projection", projectionMatrix);

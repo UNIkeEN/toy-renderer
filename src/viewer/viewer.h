@@ -19,7 +19,7 @@ public:
     void mainLoop();
     void cleanup();
 
-    std::shared_ptr<Camera> getCamera() const { return mCamera; }
+    [[nodiscard]] std::shared_ptr<Camera> getCamera() const { return mCamera; }
     void setCamera(const std::shared_ptr<Camera>& camera) { mCamera = camera; }
 
 private:
@@ -30,10 +30,10 @@ private:
     std::shared_ptr<Camera> mCamera;
 
     bool mFirstMouse;   // If the mouse is first used
-    float mLastX;       // Last mouse x position
-    float mLastY;       // Last mouse y position
-    float mDeltaTime;   // Interval between current frame and last frame
-    float mLastFrame;
+    double mLastX;       // Last mouse x position
+    double mLastY;       // Last mouse y position
+    double mDeltaTime;   // Interval between current frame and last frame
+    double mLastFrame;
 
     float mMovementSpeed;   // Camera movement speed of keyboard input
     float mMouseSensitivity;

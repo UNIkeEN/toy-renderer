@@ -21,5 +21,5 @@ public:
     // Cleanup when the renderer is destroyed
     virtual void cleanup() = 0;
 
-    virtual RENDERER_TYPE getType() const = 0;
+    [[nodiscard]] virtual RENDERER_TYPE getType() const = 0;
 };

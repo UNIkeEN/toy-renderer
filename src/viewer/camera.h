@@ -9,24 +9,24 @@ public:
 
     virtual void update() = 0;
 
-    glm::mat4 getViewMatrix() const { return mViewMatrix; }
-    glm::mat4 getProjectionMatrix() const { return mProjectionMatrix; }
+    [[nodiscard]] glm::mat4 getViewMatrix() const { return mViewMatrix; }
+    [[nodiscard]] glm::mat4 getProjectionMatrix() const { return mProjectionMatrix; }
 
-    glm::vec3 getPosition() const { return mPosition; }
-    glm::vec3 getDirection() const { return mDirection; }
-    glm::vec3 getUp() const { return mUp; }
+    [[nodiscard]] glm::vec3 getPosition() const { return mPosition; }
+    [[nodiscard]] glm::vec3 getDirection() const { return mDirection; }
+    [[nodiscard]] glm::vec3 getUp() const { return mUp; }
     
-    float getYaw() const { return mYaw; }
+    [[nodiscard]] float getYaw() const { return mYaw; }
     void setYaw(const float yaw) { mYaw = yaw; update(); }
-    float getPitch() const { return mPitch; }
+    [[nodiscard]] float getPitch() const { return mPitch; }
     void setPitch(const float pitch) { mPitch = pitch; update(); }
-    float getFOV() const { return mFOV; }
+    [[nodiscard]] float getFOV() const { return mFOV; }
     void setFOV(const float fov) { mFOV = fov; update(); }
-    float getNear() const { return mNear; }
+    [[nodiscard]] float getNear() const { return mNear; }
     void setNear(const float near) { mNear = near; update(); }
-    float getFar() const { return mFar; }
+    [[nodiscard]] float getFar() const { return mFar; }
     void setFar(const float far) { mFar = far; update(); }
-    float getAspectRatio() const { return mAspectRatio; }
+    [[nodiscard]] float getAspectRatio() const { return mAspectRatio; }
     void setAspectRatio(const float aspectRatio) { mAspectRatio = aspectRatio; update(); }
 
     // General camera control functions

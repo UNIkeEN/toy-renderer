@@ -1,4 +1,5 @@
 #include <glad/glad.h>
+#include <memory>
 #include "viewer/viewer.h"
 #include "viewer/camera_perspective.hpp"
 #include "render/render_OpenGL.h"

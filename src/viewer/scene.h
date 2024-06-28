@@ -6,7 +6,7 @@
 
 class Scene {
 public:
-    Scene();
+    Scene() = default;
     ~Scene();
 
     void addModel(const std::string& path);

@@ -2,8 +2,7 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
 #include <iostream>
-
-Scene::Scene() {}
+#include <filesystem>
 
 Scene::~Scene() {
     cleanup();
@@ -31,9 +30,9 @@ void Scene::loadModel(const std::string& path, Model& model) {
     std::vector<tinyobj::material_t> materials;
     std::string warn, err;
 
-    std::string base_dir = path.substr(0, path.find_last_of("/\\")); // For MTL
+    std::filesystem::path base_dir = std::filesystem::path(path).parent_path(); // For MTL
 
-    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, path.c_str(), base_dir.c_str())) {
+    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, path.c_str(), base_dir.string().c_str())) {
         std::cerr << "Failed to load model: " << warn << err << std::endl;
         throw std::runtime_error("Failed to load model");
     }
@@ -69,7 +68,8 @@ void Scene::loadModel(const std::string& path, Model& model) {
 
     // load texture path
     if (!materials.empty() && !materials[0].diffuse_texname.empty()) {
-        model.texturePath = base_dir + "/" + materials[0].diffuse_texname;
+        std::filesystem::path texture_path = base_dir / materials[0].diffuse_texname;
+        model.texturePath = texture_path.string();
     }
 
     // std::cout << model.vertices.size() << " vertices loaded" << std::endl;
