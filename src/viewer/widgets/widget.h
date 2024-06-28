@@ -9,6 +9,8 @@
 // Forward declaration to avoid circular dependency
 class Viewer;
 class HUDWidget;
+class ModelPanelWidget;
+class CameraPanelWidget;
 
 class Widget {
 public:

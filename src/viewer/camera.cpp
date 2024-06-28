@@ -26,9 +26,9 @@ void Camera::rotate(float yaw, float pitch) {
 
 void Camera::zoom(float offset) {
     mFOV -= offset;
-    if (mFOV < 0.5f)
-        mFOV = 0.5f;
-    if (mFOV > 45.0f)
-        mFOV = 45.0f;
+    if (mFOV < 30.0f)
+        mFOV = 30.0f;
+    if (mFOV > 120.0f)
+        mFOV = 120.0f;
     update();
 }
