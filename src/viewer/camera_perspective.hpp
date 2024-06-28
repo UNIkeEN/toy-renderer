@@ -1,58 +1,20 @@
 #pragma once
 
 #include "camera.h"
-#include <glm/gtc/matrix_transform.hpp>
 
 class PerspectiveCamera : public Camera {
 public:
-    PerspectiveCamera(float fov, float aspectRatio, float nearClip, float farClip)
-        : mFOV(fov), mAspectRatio(aspectRatio), mNearClip(nearClip), mFarClip(farClip) {
-        update();
+    PerspectiveCamera(float aspectRatio) : Camera() {
+        setAspectRatio(aspectRatio);
     }
 
     void update() override {
+        glm::vec3 front;
+        front.x = cos(glm::radians(mYaw)) * cos(glm::radians(mPitch));
+        front.y = sin(glm::radians(mPitch));
+        front.z = sin(glm::radians(mYaw)) * cos(glm::radians(mPitch));
+        mDirection = glm::normalize(front);
         mViewMatrix = glm::lookAt(mPosition, mPosition + mDirection, mUp);
-        mProjectionMatrix = glm::perspective(glm::radians(mFOV), mAspectRatio, mNearClip, mFarClip);
+        mProjectionMatrix = glm::perspective(glm::radians(mFOV), mAspectRatio, mNear, mFar);
     }
-
-    void setPosition(const glm::vec3& position) {
-        mPosition = position;
-        update();
-    }
-
-    void setDirection(const glm::vec3& direction) {
-        mDirection = direction;
-        update();
-    }
-
-    void setUp(const glm::vec3& up) {
-        mUp = up;
-        update();
-    }
-
-    void setFOV(float fov) {
-        mFOV = fov;
-        update();
-    }
-
-    void setAspectRatio(float aspectRatio) {
-        mAspectRatio = aspectRatio;
-        update();
-    }
-
-    void setNearClip(float nearClip) {
-        mNearClip = nearClip;
-        update();
-    }
-
-    void setFarClip(float farClip) {
-        mFarClip = farClip;
-        update();
-    }
-
-private:
-    float mFOV;
-    float mAspectRatio;
-    float mNearClip;
-    float mFarClip;
 };
