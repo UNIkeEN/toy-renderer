@@ -12,7 +12,7 @@ public:
     // Initialize when the renderer is created
     virtual void init() = 0;
 
-    // Setup buffers and shaders for the input scene
+    // Setup buffers and textures for the input scene
     virtual void setup(const std::shared_ptr<Scene>& scene) = 0;
 
     // Render for the input VP matrix (called every frame in viewer's loop)

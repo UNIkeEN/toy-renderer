@@ -1,5 +1,6 @@
 #pragma once
 
+#include <glad/glad.h>
 #include "render.h"
 #include "shader.h"
 #include <vector>
@@ -24,4 +25,5 @@ private:
     std::vector<GLuint> mVBOs;
     std::vector<GLuint> mEBOs;
     std::vector<GLuint> mTextures;
+    std::vector<size_t> mVertexCounts; // Number of vertices for each model, used in glDrawArrays
 };

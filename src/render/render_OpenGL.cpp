@@ -1,7 +1,6 @@
 #include "render/render_OpenGL.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
-#include <glad/glad.h>
 #include <iostream>
 
 OpenGLRender::OpenGLRender() {}
@@ -25,6 +24,8 @@ void OpenGLRender::init() {
 
     mShader = std::make_unique<ShaderProgram>("../src/shaders/OpenGL/vertex.glsl", "../src/shaders/OpenGL/fragment.glsl");
     mShader->use();
+
+    glEnable(GL_DEPTH_TEST);
 }
 
 void OpenGLRender::setup(const std::shared_ptr<Scene>& scene) {
@@ -33,6 +34,7 @@ void OpenGLRender::setup(const std::shared_ptr<Scene>& scene) {
     mVAOs.resize(modelCount);
     mVBOs.resize(modelCount);
     mTextures.resize(modelCount);
+    mVertexCounts.resize(modelCount);
 
     glGenVertexArrays(modelCount, mVAOs.data());
     glGenBuffers(modelCount, mVBOs.data());
@@ -73,6 +75,7 @@ void OpenGLRender::setup(const std::shared_ptr<Scene>& scene) {
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)0);
         glEnableVertexAttribArray(0);
         size_t offset = 3 * sizeof(float);
+        mVertexCounts[i] = vertices.size();
 
         if (!normals.empty()) {
             glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)offset);
@@ -96,7 +99,7 @@ void OpenGLRender::setup(const std::shared_ptr<Scene>& scene) {
 }
 
 void OpenGLRender::render(const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix) {
-    glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
+    glClearColor(0.00f, 0.00f, 0.00f, 1.00f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     mShader->use();
@@ -116,7 +119,7 @@ void OpenGLRender::render(const glm::mat4& viewMatrix, const glm::mat4& projecti
             mShader->setInt("texture_diffuse", 0);
         }
 
-        glDrawArrays(GL_TRIANGLES, 0, mVAOs.size());
+        glDrawArrays(GL_TRIANGLES, 0, mVertexCounts[i]);
         glBindVertexArray(0);
     }
 }
