@@ -1,11 +1,10 @@
 #include "viewer.h"
-#include "camera.h"
 #include <iostream>
 
-Viewer::Viewer(int width, int height, std::shared_ptr<Render> render, std::shared_ptr<Camera> camera)
-    : mWidth(width), mHeight(height), mWindow(nullptr), mRender(std::move(render)), mCamera(std::move(camera)),
+Viewer::Viewer(int width, int height, std::shared_ptr<Render> render, std::shared_ptr<Camera> camera, std::shared_ptr<Scene> scene)
+    : mWidth(width), mHeight(height), mWindow(nullptr), mRender(std::move(render)), mCamera(std::move(camera)), mScene(std::move(scene)),
       mFirstMouse(true), mLastX((double) width / 2.0f), mLastY(height / 2.0f), mDeltaTime(0.0f), mLastFrame(0.0f),
-      mMovementSpeed(10.0f), mMouseSensitivity(0.1f), 
+      mMovementSpeed(20.0f), mMouseSensitivity(0.15f), 
       mWidgets(createAllWidgets()) {}
 
 Viewer::~Viewer() {
@@ -58,7 +57,7 @@ void Viewer::init() {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.FontGlobalScale = 2.0f;
+    io.FontGlobalScale = 1.5f;
     ImGui::StyleColorsDark();
 
     if (mRender->getType() == RENDERER_TYPE::OpenGL) {
@@ -68,8 +67,6 @@ void Viewer::init() {
         ImGui_ImplGlfw_InitForVulkan(mWindow, true);
         // TODO
     }
-
-    // mRender->init();
 }
 
 void Viewer::mainLoop() {

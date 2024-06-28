@@ -37,6 +37,13 @@ void Scene::loadModel(const std::string& path, Model& model) {
         throw std::runtime_error("Failed to load model");
     }
 
+    if (!shapes.empty()) {
+        model.name = std::filesystem::path(path).stem().string();
+    } else {
+        std::cerr << "No shapes found in model" << std::endl;
+        throw std::runtime_error("No shapes found in model");
+    }
+
     // load vertices information(pos, normal, texcoord)
     for (const auto& shape : shapes) {
         for (const auto& index : shape.mesh.indices) {

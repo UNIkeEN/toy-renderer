@@ -7,21 +7,25 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 // #include <imgui_impl_vulkan.h>
+#include "camera.h"
+#include "scene.h"
 #include "render/render.h"
 #include "widgets/widget.h"
-#include "camera.h"
 
 class Viewer {
 public:
-    Viewer(int width, int height, std::shared_ptr<Render> render, std::shared_ptr<Camera> camera);
+    Viewer(int width, int height, std::shared_ptr<Render> render, std::shared_ptr<Camera> camera, std::shared_ptr<Scene> scene);
     virtual ~Viewer();
 
     void init();
     void mainLoop();
     void cleanup();
 
+    [[nodiscard]] std::shared_ptr<Render> getRender() const { return mRender; }
     [[nodiscard]] std::shared_ptr<Camera> getCamera() const { return mCamera; }
     void setCamera(const std::shared_ptr<Camera>& camera) { mCamera = camera; }
+    [[nodiscard]] std::shared_ptr<Scene> getScene() const { return mScene; }
+    void setScene(const std::shared_ptr<Scene>& scene) { mScene = scene; }
 
     [[nodiscard]] int getWidth() const { return mWidth; }
     [[nodiscard]] int getHeight() const { return mHeight; }
@@ -37,6 +41,7 @@ protected:
     GLFWwindow* mWindow;
     std::shared_ptr<Render> mRender;
     std::shared_ptr<Camera> mCamera;
+    std::shared_ptr<Scene> mScene;
 
     bool mFirstMouse;    // If the mouse is first used
     bool mLeftMouseButtonPressed;   

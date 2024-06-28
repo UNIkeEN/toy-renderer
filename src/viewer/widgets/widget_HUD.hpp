@@ -1,4 +1,4 @@
-#include <utility>
+#pragma once
 
 #include "widget.h"
 #include "../viewer.h"
@@ -12,7 +12,11 @@ public:
 
     void render(Viewer& viewer) override {
         if (!mVisible) return;
+
+        ImGui::SetNextWindowSize(ImVec2(300, 40), ImGuiCond_Once);
+        ImGui::SetNextWindowPos(ImVec2(30, 50), ImGuiCond_Once);
         ImGui::SetNextWindowBgAlpha(0.0f);
+
         ImGui::Begin(mName.c_str(), &mVisible, ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar);
         ImGui::TextWrapped("FPS: %.2f", 1.0f / viewer.getDeltaTime());
         ImGui::End();
@@ -20,9 +24,8 @@ public:
         drawCoordinateAxes(viewer);
     }
 
-    private:
+private:
     void drawCoordinateAxes(Viewer& viewer) {
-
         // Guided by GPT
         
         ImGuiIO& io = ImGui::GetIO();
