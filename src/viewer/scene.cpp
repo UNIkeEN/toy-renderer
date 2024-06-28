@@ -31,7 +31,9 @@ void Scene::loadModel(const std::string& path, Model& model) {
     std::vector<tinyobj::material_t> materials;
     std::string warn, err;
 
-    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, path.c_str())) {
+    std::string base_dir = path.substr(0, path.find_last_of("/\\")); // For MTL
+
+    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, path.c_str(), base_dir.c_str())) {
         std::cerr << "Failed to load model: " << warn << err << std::endl;
         throw std::runtime_error("Failed to load model");
     }
@@ -67,6 +69,11 @@ void Scene::loadModel(const std::string& path, Model& model) {
 
     // load texture path
     if (!materials.empty() && !materials[0].diffuse_texname.empty()) {
-        model.texturePath = materials[0].diffuse_texname;
+        model.texturePath = base_dir + "/" + materials[0].diffuse_texname;
     }
+
+    // std::cout << model.vertices.size() << " vertices loaded" << std::endl;
+    // std::cout << model.normals.size() << " normals loaded" << std::endl;
+    // std::cout << model.texCoords.size() << " texCoords loaded" << std::endl;
+    // std::cout << "Texture path: " << model.texturePath << std::endl;
 }
