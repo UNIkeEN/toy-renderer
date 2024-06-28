@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 add_subdirectory(${PROJECT_SOURCE_DIR}/deps/glad)
 add_subdirectory(${PROJECT_SOURCE_DIR}/deps/glfw)
 add_subdirectory(${PROJECT_SOURCE_DIR}/deps/glm)
+add_subdirectory(${PROJECT_SOURCE_DIR}/deps/nfd)
 file(GLOB IMGUI_SOURCES 
     ${PROJECT_SOURCE_DIR}/deps/imgui/*.cpp
     ${PROJECT_SOURCE_DIR}/deps/imgui/backends/imgui_impl_glfw.cpp
@@ -26,4 +27,4 @@ find_package(Vulkan REQUIRED)
 add_executable(${PROJECT_NAME})
 add_subdirectory(${PROJECT_SOURCE_DIR}/src)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE glad glfw glm imgui Vulkan::Vulkan)
+target_link_libraries(${PROJECT_NAME} PRIVATE glad glfw glm imgui nfd Vulkan::Vulkan)
