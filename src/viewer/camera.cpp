@@ -1,5 +1,5 @@
 #include "camera.h"
-
+#include <iostream>
 // Implement of eneral camera control functions
 
 void Camera::move(const glm::vec3& direction, float velocity) {
@@ -26,8 +26,8 @@ void Camera::rotate(float yaw, float pitch) {
 
 void Camera::zoom(float offset) {
     mFOV -= offset;
-    if (mFOV < 1.0f)
-        mFOV = 1.0f;
+    if (mFOV < 0.5f)
+        mFOV = 0.5f;
     if (mFOV > 45.0f)
         mFOV = 45.0f;
     update();

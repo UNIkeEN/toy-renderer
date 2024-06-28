@@ -5,7 +5,7 @@
 
 Viewer::Viewer(int width, int height, std::shared_ptr<Render> render, std::shared_ptr<Camera> camera)
     : mWidth(width), mHeight(height), mWindow(nullptr), mRender(std::move(render)), mCamera(std::move(camera)),
-      mFirstMouse(true), mLastX(width / 2.0f), mLastY(height / 2.0f), mDeltaTime(0.0f), mLastFrame(0.0f),
+      mFirstMouse(true), mLastX((double) width / 2.0f), mLastY(height / 2.0f), mDeltaTime(0.0f), mLastFrame(0.0f),
       mMovementSpeed(10.0f), mMouseSensitivity(0.1f) {}
 
 Viewer::~Viewer() {
@@ -43,11 +43,16 @@ void Viewer::init() {
         static_cast<Viewer*>(glfwGetWindowUserPointer(window))->scrollCallback(window, xoffset, yoffset);
     });
 
+    glfwSetMouseButtonCallback(mWindow, [](GLFWwindow* window, int button, int action, int mods) {
+        static_cast<Viewer*>(glfwGetWindowUserPointer(window))->mouseButtonCallback(window, button, action, mods);
+    });
+
     glfwSetFramebufferSizeCallback(mWindow, [](GLFWwindow* window, int width, int height) {
         static_cast<Viewer*>(glfwGetWindowUserPointer(window))->framebufferSizeCallback(window, width, height);
     });
 
-    glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    // Catch cursor
+    // glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // Initialize ImGui context
     IMGUI_CHECKVERSION();
@@ -149,6 +154,8 @@ void Viewer::keyboardCallback(GLFWwindow* window, int key, int scancode, int act
 }
 
 void Viewer::mouseCallback(GLFWwindow* window, double xpos, double ypos) {
+    if (!mLeftMouseButtonPressed) return;
+
     if (mFirstMouse) {
         mLastX = xpos;
         mLastY = ypos;
@@ -165,7 +172,18 @@ void Viewer::mouseCallback(GLFWwindow* window, double xpos, double ypos) {
 }
 
 void Viewer::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
-    mCamera->setFOV(mCamera->getFOV() - yoffset);   // Zoom in/out by changing FOV
+    mCamera->zoom(yoffset);   // Zoom in/out by changing FOV
+}
+
+void Viewer::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+    if (button == GLFW_MOUSE_BUTTON_LEFT) {
+        if (action == GLFW_PRESS) {
+            mLeftMouseButtonPressed = true;
+        } else if (action == GLFW_RELEASE) {
+            mLeftMouseButtonPressed = false;
+            mFirstMouse = true;
+        }
+    }
 }
 
 void Viewer::framebufferSizeCallback(GLFWwindow* window, int width, int height) {
