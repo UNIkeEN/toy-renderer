@@ -4,7 +4,9 @@
 #include <iostream>
 
 Viewer::Viewer(int width, int height, std::shared_ptr<Render> render, std::shared_ptr<Camera> camera)
-    : mWidth(width), mHeight(height), mWindow(nullptr), mRender(render), mCamera(camera) {}
+    : mWidth(width), mHeight(height), mWindow(nullptr), mRender(render), mCamera(camera),
+      mFirstMouse(true), mLastX(width / 2.0f), mLastY(height / 2.0f), mDeltaTime(0.0f), mLastFrame(0.0f),
+      mMovementSpeed(10.0f), mMouseSensitivity(0.1f) {}
 
 Viewer::~Viewer() {
     cleanup();
@@ -26,6 +28,26 @@ void Viewer::init() {
     }
 
     glfwMakeContextCurrent(mWindow);
+    glfwSetWindowUserPointer(mWindow, this);    // For callback functions below to get (Guided by GPT)
+
+    // Callback functions to process user's input
+    glfwSetKeyCallback(mWindow, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
+        static_cast<Viewer*>(glfwGetWindowUserPointer(window))->keyboardCallback(window, key, scancode, action, mods);
+    });
+
+    glfwSetCursorPosCallback(mWindow, [](GLFWwindow* window, double xpos, double ypos) {
+        static_cast<Viewer*>(glfwGetWindowUserPointer(window))->mouseCallback(window, xpos, ypos);
+    });
+
+    glfwSetScrollCallback(mWindow, [](GLFWwindow* window, double xoffset, double yoffset) {
+        static_cast<Viewer*>(glfwGetWindowUserPointer(window))->scrollCallback(window, xoffset, yoffset);
+    });
+
+    glfwSetFramebufferSizeCallback(mWindow, [](GLFWwindow* window, int width, int height) {
+        static_cast<Viewer*>(glfwGetWindowUserPointer(window))->framebufferSizeCallback(window, width, height);
+    });
+
+    glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // Initialize ImGui context
     IMGUI_CHECKVERSION();
@@ -41,11 +63,15 @@ void Viewer::init() {
         // TODO
     }
 
-    mRender->init();
+    // mRender->init();
 }
 
 void Viewer::mainLoop() {
     while (!glfwWindowShouldClose(mWindow)) {
+        float currentFrame = glfwGetTime();
+        mDeltaTime = currentFrame - mLastFrame;
+        mLastFrame = currentFrame;
+
         glfwPollEvents();
 
         if (mRender->getType() == RENDERER_TYPE::OpenGL) {
@@ -60,14 +86,17 @@ void Viewer::mainLoop() {
 
         // Render scene
         if (mRender) {
-            mRender->render();
+            mRender->render(
+                mCamera->getViewMatrix(),
+                mCamera->getProjectionMatrix()
+            );
         }
 
         // Render ImGui
         ImGui::Render();
-        int display_w, display_h;
-        glfwGetFramebufferSize(mWindow, &display_w, &display_h);
-        glViewport(0, 0, display_w, display_h);
+        int _width, _height;
+        glfwGetFramebufferSize(mWindow, &_width, &_height);
+        glViewport(0, 0, _width, _height);
         if (mRender->getType() == RENDERER_TYPE::OpenGL) {
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         } else if (mRender->getType() == RENDERER_TYPE::Vulkan) {
@@ -95,4 +124,54 @@ void Viewer::cleanup() {
         mWindow = nullptr;
     }
     glfwTerminate();
+}
+
+void Viewer::keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+        if (key == GLFW_KEY_ESCAPE)
+            glfwSetWindowShouldClose(window, GLFW_TRUE);
+        else {
+            glm::vec3 movement(0.0f), direction(mCamera->getDirection());
+            if (glfwGetKey(mWindow, GLFW_KEY_W) == GLFW_PRESS)
+                movement += direction;
+            if (glfwGetKey(mWindow, GLFW_KEY_S) == GLFW_PRESS)
+                movement -= direction;
+            if (glfwGetKey(mWindow, GLFW_KEY_A) == GLFW_PRESS)
+                movement -= glm::normalize(glm::cross(direction, mCamera->getUp()));
+            if (glfwGetKey(mWindow, GLFW_KEY_D) == GLFW_PRESS)
+                movement += glm::normalize(glm::cross(direction, mCamera->getUp()));
+            if (glfwGetKey(mWindow, GLFW_KEY_SPACE) == GLFW_PRESS)
+                movement += mCamera->getUp(); // UP
+            if (glfwGetKey(mWindow, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+                movement -= mCamera->getUp();
+            if (glm::length(movement) > 0.0f) {
+                mCamera->move(movement, mMovementSpeed * mDeltaTime);
+            }
+        }
+    }
+}
+
+void Viewer::mouseCallback(GLFWwindow* window, double xpos, double ypos) {
+    if (mFirstMouse) {
+        mLastX = xpos;
+        mLastY = ypos;
+        mFirstMouse = false;
+    }
+
+    float xoffset = (xpos - mLastX) * mMouseSensitivity;
+    float yoffset = (mLastY - ypos) * mMouseSensitivity; // Reversed Y
+
+    mLastX = xpos;
+    mLastY = ypos;
+
+    mCamera->rotate(xoffset, yoffset);
+}
+
+void Viewer::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
+    mCamera->setFOV(mCamera->getFOV() - yoffset);   // Zoom in/out by changing FOV
+}
+
+void Viewer::framebufferSizeCallback(GLFWwindow* window, int width, int height) {
+    glViewport(0, 0, width, height);
+    mCamera->setAspectRatio(static_cast<float>(width) / static_cast<float>(height));
 }

@@ -22,10 +22,24 @@ public:
     std::shared_ptr<Camera> getCamera() const { return mCamera; }
     void setCamera(const std::shared_ptr<Camera>& camera) { mCamera = camera; }
 
-protected:
+private:
     int mWidth;
     int mHeight;
     GLFWwindow* mWindow;
     std::shared_ptr<Render> mRender;
     std::shared_ptr<Camera> mCamera;
+
+    bool mFirstMouse;   // If the mouse is first used
+    float mLastX;       // Last mouse x position
+    float mLastY;       // Last mouse y position
+    float mDeltaTime;   // Interval between current frame and last frame
+    float mLastFrame;
+
+    float mMovementSpeed;   // Camera movement speed of keyboard input
+    float mMouseSensitivity;
+
+    void keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+    void mouseCallback(GLFWwindow* window, double xpos, double ypos);
+    void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
+    void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 };
