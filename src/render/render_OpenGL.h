@@ -2,7 +2,6 @@
 
 #include "render.h"
 #include "shader.h"
-#include <GLFW/glfw3.h>
 #include <vector>
 
 class OpenGLRender : public Render {
@@ -12,7 +11,7 @@ public:
 
     void init() override;
     void setup(const std::shared_ptr<Scene>& scene);
-    void render() override;
+    void render(const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix) override;
     void cleanup() override;
 
     RENDERER_TYPE getType() const override;

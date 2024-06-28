@@ -32,6 +32,7 @@ void OpenGLRender::setup(const std::shared_ptr<Scene>& scene) {
     size_t modelCount = scene->getModelCount();
     mVAOs.resize(modelCount);
     mVBOs.resize(modelCount);
+    mTextures.resize(modelCount);
 
     glGenVertexArrays(modelCount, mVAOs.data());
     glGenBuffers(modelCount, mVBOs.data());
@@ -94,13 +95,27 @@ void OpenGLRender::setup(const std::shared_ptr<Scene>& scene) {
     }
 }
 
-void OpenGLRender::render() {
+void OpenGLRender::render(const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix) {
     glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     mShader->use();
+
+    glm::mat4 modelMatrix = glm::mat4(1.0f);
+    mShader->setMat4("model", modelMatrix);
+    mShader->setMat4("view", viewMatrix);
+    mShader->setMat4("projection", projectionMatrix);
+
     for (size_t i = 0; i < mVAOs.size(); ++i) {
         glBindVertexArray(mVAOs[i]);
+
+        if (mTextures[i]) {
+            // Use GL_TETURE0 all the time
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, mTextures[i]);
+            mShader->setInt("texture_diffuse", 0);
+        }
+
         glDrawArrays(GL_TRIANGLES, 0, mVAOs.size());
         glBindVertexArray(0);
     }
@@ -152,7 +167,7 @@ void OpenGLRender::loadTexture(const std::string& path, GLuint& textureID) {
     } else {
         std::cerr << "Failed to load texture: " << path << std::endl;
     }
-    
+
     stbi_image_free(data);
     glBindTexture(GL_TEXTURE_2D, 0);
 }
