@@ -36,6 +36,7 @@ void Scene::loadModel(const std::string& path, Model& model) {
         throw std::runtime_error("Failed to load model");
     }
 
+    // load vertices information(pos, normal, texcoord)
     for (const auto& shape : shapes) {
         for (const auto& index : shape.mesh.indices) {
             glm::vec3 vertex = {
@@ -62,5 +63,10 @@ void Scene::loadModel(const std::string& path, Model& model) {
                 model.texCoords.push_back(texCoord);
             }
         }
+    }
+
+    // load texture path
+    if (!materials.empty() && !materials[0].diffuse_texname.empty()) {
+        model.texturePath = materials[0].diffuse_texname;
     }
 }
