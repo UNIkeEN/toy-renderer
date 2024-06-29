@@ -6,7 +6,7 @@ class PerspectiveCamera : public Camera {
 public:
     explicit PerspectiveCamera(float aspectRatio) : Camera() {
         setAspectRatio(aspectRatio);
-        PerspectiveCamera::update();
+        // PerspectiveCamera::update();
     }
 
     explicit PerspectiveCamera(const Camera& other) : Camera(other) {}

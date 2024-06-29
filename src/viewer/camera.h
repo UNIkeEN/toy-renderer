@@ -19,11 +19,12 @@ public:
     [[nodiscard]] glm::mat4 getProjectionMatrix() const { return mProjectionMatrix; }
 
     [[nodiscard]] glm::vec3 getPosition() const { return mPosition; }
+    void setPosition(const glm::vec3& position) { mPosition = position; update(); }
     [[nodiscard]] glm::vec3 getDirection() const { return mDirection; }
     [[nodiscard]] glm::vec3 getUp() const { return mUp; }
     
     [[nodiscard]] float getYaw() const { return mYaw; }
-    void setYaw(const float yaw) { mYaw = yaw; update(); }
+    void setYaw(const float yaw) { mYaw = glm::mod(yaw + 180.0f, 360.0f) - 180.0f; update(); }
     [[nodiscard]] float getPitch() const { return mPitch; }
     void setPitch(const float pitch) { mPitch = glm::clamp(pitch, -89.0f, 89.0f); update(); }
     [[nodiscard]] float getFOV() const { return mFOV; }
@@ -40,6 +41,7 @@ public:
     void move(const glm::vec3& direction, float deltaTime);
     void rotate(float yaw, float pitch);
     virtual void zoom(float offset);
+    void resetControl();
     
 protected:
     glm::mat4 mViewMatrix;

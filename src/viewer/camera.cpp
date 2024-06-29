@@ -13,13 +13,25 @@ void Camera::move(const glm::vec3& offset) {
 }
 
 void Camera::rotate(float yaw, float pitch) {
-    mYaw += yaw;
+    setYaw(mYaw + yaw);
     setPitch(mPitch + pitch);
     // Omit update() here, setPitch() will call
 }
 
 void Camera::zoom(float offset) {
     setFOV(mFOV - offset);
+}
+
+void Camera::resetControl() {
+    mPosition = glm::vec3(0.0f, 0.0f, 0.0f);
+    mDirection = glm::vec3(0.0f, 0.0f, -1.0f);
+    mUp = glm::vec3(0.0f, 1.0f, 0.0f);
+    mYaw = -90.0f;
+    mPitch = 0.0f;
+    mFOV = 45.0f;
+    mNear = 0.1f;
+    mFar = 1000.0f;
+    update();
 }
 
 // Implement of Copy assignment operator

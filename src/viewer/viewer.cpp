@@ -20,6 +20,7 @@ void Viewer::init() {
     }
 
     // Create GLFW window
+    // glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE); // Maximize
     mWindow = glfwCreateWindow(mWidth, mHeight, "Toy Renderer", nullptr, nullptr);
     if (!mWindow) {
         std::cerr << "Failed to create GLFW window" << std::endl;

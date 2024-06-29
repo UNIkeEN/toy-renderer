@@ -13,7 +13,7 @@ public:
     void render(Viewer& viewer) override {
         if (!mVisible) return;
 
-        ImGui::SetNextWindowSize(ImVec2(360, 360), ImGuiCond_Once);
+        ImGui::SetNextWindowSize(ImVec2(400, 500), ImGuiCond_Once);
         ImGui::SetNextWindowPos(ImVec2(30, 610), ImGuiCond_Once);
 
         ImGui::Begin(mName.c_str(), &mVisible);
@@ -28,6 +28,12 @@ public:
                 viewer.setCamera(std::make_shared<OrthographicCamera>(*(viewer.getCamera())));
             }
         }
+        ImGui::SameLine(ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize("Reset").x);
+        PushStyleRedButton();
+        if (ImGui::Button("Reset")) {
+            viewer.getCamera()->resetControl();
+        }
+        ImGui::PopStyleColor(3);
         ImGui::Spacing();
 
         ImGui::TextWrapped("Move Speed");
@@ -58,6 +64,68 @@ public:
             ImGui::PopItemWidth();
         }
 
+        // Postion and Orientation
+        ImGui::TextWrapped("Position & Orientation");
+        glm::vec3 position = viewer.getCamera()->getPosition();
+        float yaw = viewer.getCamera()->getYaw();
+        float pitch = viewer.getCamera()->getPitch();
+        float _pos[3] = { position.x, position.y, position.z };
+
+        float colWidth = (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().WindowPadding.x * 2) / 4.0f;
+        ImGui::PushItemWidth(colWidth);
+        ImGui::SetCursorPosX(colWidth - ImGui::CalcTextSize("X").x);
+        ImGui::Text("X");
+        ImGui::SameLine();
+        if (ImGui::InputFloat("##X", &_pos[0], 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue)) {
+            viewer.getCamera()->setPosition(glm::vec3(_pos[0], _pos[1], _pos[2]));
+        }
+        if (ImGui::IsItemDeactivatedAfterEdit()) {  // When left focus
+            viewer.getCamera()->setPosition(glm::vec3(_pos[0], _pos[1], _pos[2]));
+        }
+        ImGui::SameLine();
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + colWidth - ImGui::CalcTextSize("Yaw").x);
+        ImGui::Text("Yaw");
+        ImGui::SameLine();
+        if (ImGui::InputFloat("##Yaw", &yaw, 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue)) {
+            viewer.getCamera()->setYaw(yaw);
+        }
+        if (ImGui::IsItemDeactivatedAfterEdit()) {
+            viewer.getCamera()->setYaw(yaw);
+        }
+
+        // Y and Pitch row
+        ImGui::SetCursorPosX(colWidth - ImGui::CalcTextSize("Y").x);
+        ImGui::Text("Y");
+        ImGui::SameLine();
+        if (ImGui::InputFloat("##Y", &_pos[1], 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue)) {
+            viewer.getCamera()->setPosition(glm::vec3(_pos[0], _pos[1], _pos[2]));
+        }
+        if (ImGui::IsItemDeactivatedAfterEdit()) {
+            viewer.getCamera()->setPosition(glm::vec3(_pos[0], _pos[1], _pos[2]));
+        }
+        ImGui::SameLine();
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + colWidth - ImGui::CalcTextSize("Pitch").x);
+        ImGui::Text("Pitch");
+        ImGui::SameLine();
+        if (ImGui::InputFloat("##Pitch", &pitch, 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue)) {
+            viewer.getCamera()->setPitch(pitch);
+        }
+        if (ImGui::IsItemDeactivatedAfterEdit()) {
+            viewer.getCamera()->setPitch(pitch);
+        }
+
+        // Z row
+        ImGui::SetCursorPosX(colWidth - ImGui::CalcTextSize("Z").x);
+        ImGui::Text("Z");
+        ImGui::SameLine();
+        if (ImGui::InputFloat("##Z", &_pos[2], 0.0f, 0.0f, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue)) {
+            viewer.getCamera()->setPosition(glm::vec3(_pos[0], _pos[1], _pos[2]));
+        }
+        if (ImGui::IsItemDeactivatedAfterEdit()) {
+            viewer.getCamera()->setPosition(glm::vec3(_pos[0], _pos[1], _pos[2]));
+        }
+        ImGui::PopItemWidth();
+        
         ImGui::End();
     }
 };

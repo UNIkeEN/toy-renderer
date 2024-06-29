@@ -12,7 +12,7 @@ public:
     void render(Viewer& viewer) override {
         if (!mVisible) return;
 
-        ImGui::SetNextWindowSize(ImVec2(360, 500), ImGuiCond_Once);
+        ImGui::SetNextWindowSize(ImVec2(400, 500), ImGuiCond_Once);
         ImGui::SetNextWindowPos(ImVec2(30, 100), ImGuiCond_Once);
         
         ImGui::Begin(mName.c_str(), &mVisible);
@@ -42,7 +42,7 @@ public:
                 ImGui::PopStyleColor();
             }
 
-            ImGui::SameLine(ImGui::GetContentRegionAvail().x - (treeOpen ? 60 : 80));
+            ImGui::SameLine(ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize("Remove").x + (treeOpen ? 15 : -5));
             PushStyleRedButton();
             if (ImGui::Button("Remove")) {
                 viewer.getScene()->removeModel(i);

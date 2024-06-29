@@ -29,6 +29,10 @@ void OpenGLRender::init() {
         findFile("assets/shaders/glsl/material-preview.vert"),
         findFile("assets/shaders/glsl/material-preview.frag")
     ));
+    mShaders.emplace_back(SHADER_TYPE::Wireframe, std::make_shared<ShaderProgram>(
+        findFile("assets/shaders/glsl/wireframe.vert"),
+        findFile("assets/shaders/glsl/wireframe.frag")
+    ));
     
     setCurrentShader(SHADER_TYPE::MaterialPreview);
 
@@ -119,6 +123,7 @@ void OpenGLRender::setup(const std::shared_ptr<Scene>& scene) {
 void OpenGLRender::render(const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix) {
     glClearColor(0.00f, 0.00f, 0.00f, 1.00f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glPolygonMode(GL_FRONT_AND_BACK, mCurrentShader.first == SHADER_TYPE::Wireframe ? GL_LINE : GL_FILL);
 
     auto shader = mCurrentShader.second;
     shader->use();

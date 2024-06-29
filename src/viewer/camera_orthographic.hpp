@@ -7,7 +7,7 @@ class OrthographicCamera : public Camera {
 public:
     explicit OrthographicCamera(float aspectRatio) : Camera() {
         setAspectRatio(aspectRatio);
-        OrthographicCamera::update();
+        // OrthographicCamera::update();
     }
 
     explicit OrthographicCamera(const Camera& other) : Camera(other) {}
