@@ -25,6 +25,4 @@ public:
         mProjectionMatrix = glm::perspective(glm::radians(mFOV), mAspectRatio, mNear, mFar);
     }
 
-    void zoom(float offset) {}
-
 };

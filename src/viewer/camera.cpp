@@ -24,7 +24,6 @@ void Camera::zoom(float offset) {
 
 // Implement of Copy assignment operator
 Camera& Camera::operator=(const Camera& other) {
-    try {
     if (this != &other) {
         mPosition = other.mPosition;
         mDirection = other.mDirection;
@@ -37,7 +36,4 @@ Camera& Camera::operator=(const Camera& other) {
         mAspectRatio = other.mAspectRatio;
     }
     return *this;
-    } catch (const std::exception& e) {
-            std::cerr << e.what() << std::endl;
-        }
 }

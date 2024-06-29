@@ -39,7 +39,7 @@ public:
     void move(const glm::vec3& offset);
     void move(const glm::vec3& direction, float deltaTime);
     void rotate(float yaw, float pitch);
-    void zoom(float offset);
+    virtual void zoom(float offset);
     
 protected:
     glm::mat4 mViewMatrix;

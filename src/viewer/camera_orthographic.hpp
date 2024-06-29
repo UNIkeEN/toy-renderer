@@ -32,4 +32,6 @@ public:
 
         mProjectionMatrix = glm::ortho(left, right, bottom, top, mNear, mFar);
     }
+
+    void zoom(float offset) override {}
 };
