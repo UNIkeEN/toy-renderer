@@ -69,7 +69,6 @@ void Viewer::init() {
     } else if (mode->width <= 1280 && mode->height <= 720) { // <=720p
         io.FontGlobalScale = 1.0f;
     }
-    
     // Color Style
     ImGui::StyleColorsDark();
 
@@ -80,6 +79,9 @@ void Viewer::init() {
         ImGui_ImplGlfw_InitForVulkan(mWindow, true);
         // TODO
     }
+
+    // Disable V-Sync
+    // glfwSwapInterval(0);
 }
 
 void Viewer::mainLoop() {
@@ -183,7 +185,7 @@ void Viewer::keyboardCallback(GLFWwindow* window, int key, int scancode, int act
             if (glfwGetKey(mWindow, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
                 movement -= mCamera->getUp();
             if (glm::length(movement) > 0.0f) {
-                mCamera->move(movement, mMovementSpeed * mDeltaTime);
+                mCamera->move(movement, mMovementSpeed * std::max(mDeltaTime, 1.0 / 60.0f));
             }
         }
     }
