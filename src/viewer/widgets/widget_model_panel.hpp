@@ -42,11 +42,11 @@ public:
                 ImGui::PopStyleColor();
             }
 
-            ImGui::SameLine(ImGui::GetContentRegionAvail().x - (treeOpen ? 0 : 20));
+            ImGui::SameLine(ImGui::GetContentRegionAvail().x - (treeOpen ? 60 : 80));
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.3f, 0.3f, 1.0f));
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.7f, 0.6f, 0.6f, 1.0f));
             ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.7f, 0.45f, 0.45f, 1.0f));
-            if (ImGui::Button("-")) {
+            if (ImGui::Button("Remove")) {
                 viewer.getScene()->removeModel(i);
                 viewer.getRender()->setup(viewer.getScene());
             }

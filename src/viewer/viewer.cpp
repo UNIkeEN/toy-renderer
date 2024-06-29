@@ -1,4 +1,5 @@
 #include "viewer.h"
+#include "utils/file.h"
 #include <iostream>
 
 Viewer::Viewer(int width, int height, std::shared_ptr<Render> render, std::shared_ptr<Camera> camera, std::shared_ptr<Scene> scene)
@@ -59,7 +60,7 @@ void Viewer::init() {
     ImGuiIO& io = ImGui::GetIO(); (void)io;
 
     // Font
-    io.Fonts->AddFontFromFileTTF("../assets/fonts/NotoSansMono-Regular.ttf", 18.0f);
+    io.Fonts->AddFontFromFileTTF(findFile("assets/fonts/NotoSansMono-Regular.ttf").c_str(), 18.0f);
     // DPI Scaling by monitor resolution
     GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();  
     const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);

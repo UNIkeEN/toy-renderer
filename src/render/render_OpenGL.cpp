@@ -1,10 +1,11 @@
 #include "render/render_OpenGL.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include "utils/file.h"
 #include <iostream>
 
 OpenGLRender::~OpenGLRender() {
-    cleanup();
+    OpenGLRender::cleanup();
     if (mShader) {
         mShader->cleanup();
     }
@@ -20,7 +21,10 @@ void OpenGLRender::init() {
         throw std::runtime_error("Failed to initialize GLAD");
     }
 
-    mShader = std::make_unique<ShaderProgram>("../src/shaders/OpenGL/vertex.glsl", "../src/shaders/OpenGL/fragment.glsl");
+    mShader = std::make_unique<ShaderProgram>(
+        findFile("assets/shaders/glsl/basic.vert"),
+        findFile("assets/shaders/glsl/basic.frag")
+    );
     mShader->use();
 
     glEnable(GL_DEPTH_TEST);
@@ -78,7 +82,7 @@ void OpenGLRender::setup(const std::shared_ptr<Scene>& scene) {
             if (!normals.empty()) stride += 3;
             if (!texCoords.empty()) stride += 2;
 
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)0);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)nullptr);
             glEnableVertexAttribArray(0);
             size_t offset = 3 * sizeof(float);
             mVertexCounts[shapeIndex] = vertices.size();
