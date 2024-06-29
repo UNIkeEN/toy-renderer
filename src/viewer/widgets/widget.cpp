@@ -6,7 +6,7 @@
 std::vector<std::shared_ptr<Widget>> createAllWidgets() {
     std::vector<std::shared_ptr<Widget>> widgets;
     widgets.push_back(std::make_shared<HUDWidget>("HUD"));
-    widgets.push_back(std::make_shared<ModelPanelWidget>("Model Panel"));
-    widgets.push_back(std::make_shared<CameraPanelWidget>("Camera Panel"));
+    widgets.push_back(std::make_shared<ModelPanelWidget>("Models"));
+    widgets.push_back(std::make_shared<CameraPanelWidget>("Camera Control"));
     return widgets;
 }

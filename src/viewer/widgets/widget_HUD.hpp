@@ -13,7 +13,7 @@ public:
     void render(Viewer& viewer) override {
         if (!mVisible) return;
 
-        ImGui::SetNextWindowSize(ImVec2(300, 40), ImGuiCond_Once);
+        ImGui::SetNextWindowSize(ImVec2(360, 40), ImGuiCond_Once);
         ImGui::SetNextWindowPos(ImVec2(30, 50), ImGuiCond_Once);
         ImGui::SetNextWindowBgAlpha(0.0f);
 

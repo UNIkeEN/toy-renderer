@@ -13,8 +13,8 @@ public:
     void render(Viewer& viewer) override {
         if (!mVisible) return;
 
-        ImGui::SetNextWindowSize(ImVec2(300, 300), ImGuiCond_Once);
-        ImGui::SetNextWindowPos(ImVec2(30, 410), ImGuiCond_Once);
+        ImGui::SetNextWindowSize(ImVec2(360, 360), ImGuiCond_Once);
+        ImGui::SetNextWindowPos(ImVec2(30, 610), ImGuiCond_Once);
 
         ImGui::Begin(mName.c_str(), &mVisible);
 

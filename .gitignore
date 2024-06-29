@@ -1,6 +1,6 @@
 build/
 cmake-build-debug/
-assets/
+assets/models/
 
 # IDE configs
 .vscode/

@@ -53,11 +53,24 @@ void Viewer::init() {
     // Catch cursor
     // glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-    // Initialize ImGui context
+    // Initialize ImGui context, custom style, and GLFW/OpenGL/Vulkan bindings
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.FontGlobalScale = 1.5f;
+
+    // Font
+    io.Fonts->AddFontFromFileTTF("../assets/fonts/NotoSansMono-Regular.ttf", 18.0f);
+    // DPI Scaling by monitor resolution
+    GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();  
+    const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
+    io.FontGlobalScale = 1.25f;
+    if (mode->width >= 2560 && mode->height >= 1440) { // >=2K
+        io.FontGlobalScale = 1.5f;
+    } else if (mode->width <= 1280 && mode->height <= 720) { // <=720p
+        io.FontGlobalScale = 1.0f;
+    }
+    
+    // Color Style
     ImGui::StyleColorsDark();
 
     if (mRender->getType() == RENDERER_TYPE::OpenGL) {
