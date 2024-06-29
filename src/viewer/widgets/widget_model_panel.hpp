@@ -12,25 +12,67 @@ public:
     void render(Viewer& viewer) override {
         if (!mVisible) return;
 
-        ImGui::SetNextWindowSize(ImVec2(300, 300), ImGuiCond_Once);
+        ImGui::SetNextWindowSize(ImVec2(360, 500), ImGuiCond_Once);
         ImGui::SetNextWindowPos(ImVec2(30, 100), ImGuiCond_Once);
         
         ImGui::Begin(mName.c_str(), &mVisible);
         
-        if (ImGui::Button("Import")) {
+        if (ImGui::Button("Add")) {
             addModel(viewer);
         }
 
         ImGui::Separator();
 
         ImGui::BeginChild("ModelList", ImVec2(0, 0), false);
-        for (size_t i = 0; i < viewer.getScene()->getModelCount(); i++) {
-            ImGui::Text(viewer.getScene()->getModelName(i).c_str());
-            ImGui::SameLine(ImGui::GetContentRegionAvail().x - 20);
-            if (ImGui::Button("-")) {
+        for (size_t i = 0; i < viewer.getScene()->getModelCount(); ++i) {
+            ImGui::PushID(i);
+            bool allShapesInvisible = true;
+            for (size_t j = 0; j < viewer.getScene()->getShapeCount(i); ++j) {
+                if (viewer.getScene()->isShapeVisible(i, j)) {
+                    allShapesInvisible = false;
+                    break;
+                }
+            }
+            if (allShapesInvisible) {
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
+            }
+            bool treeOpen = ImGui::TreeNodeEx(viewer.getScene()->getModelName(i).c_str());
+            // If use "if (ImGui::TreeNode(...) {sameline, button ...}" then the button will be hidden when the tree is closed.
+            if (allShapesInvisible) {
+                ImGui::PopStyleColor();
+            }
+
+            ImGui::SameLine(ImGui::GetContentRegionAvail().x - (treeOpen ? 0 : 20));
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.5f, 0.8f, 1.0f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.6f, 0.9f, 1.0f));
+            if (ImGui::Button("–")) {
                 viewer.getScene()->removeModel(i);
                 viewer.getRender()->setup(viewer.getScene());
             }
+            ImGui::PopStyleColor(2);
+
+            if (treeOpen) {
+                for (size_t j = 0; j < viewer.getScene()->getShapeCount(i); ++j) {
+                    ImGui::PushID(j);
+                    bool isVisible = viewer.getScene()->isShapeVisible(i, j);
+                    if (!isVisible) {
+                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
+                    }
+                    ImGui::TextWrapped(viewer.getScene()->getShapeName(i, j).c_str());
+                    if (!isVisible) {
+                        ImGui::PopStyleColor();
+                    }
+
+                    ImGui::SameLine(ImGui::GetContentRegionAvail().x - 10);
+                    if (ImGui::Checkbox("##visible", &isVisible)) {     // Can't make this checkbox between PushStyleColor() and PopStyleColor()!
+                        viewer.getScene()->setShapeVisible(i, j, isVisible);
+                        viewer.getRender()->setup(viewer.getScene());
+                    }
+                    ImGui::PopID();
+                }
+                ImGui::TreePop();
+            }
+            ImGui::PopID();
         }
         ImGui::EndChild();
 
