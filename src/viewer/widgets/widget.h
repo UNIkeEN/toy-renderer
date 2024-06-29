@@ -11,6 +11,7 @@ class Viewer;
 class HUDWidget;
 class ModelPanelWidget;
 class CameraPanelWidget;
+class TopToolbarWidget;
 
 class Widget {
 public:
