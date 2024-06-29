@@ -25,5 +25,5 @@ private:
     std::vector<GLuint> mVBOs;
     std::vector<GLuint> mEBOs;
     std::vector<GLuint> mTextures;
-    std::vector<size_t> mVertexCounts; // Number of vertices for each model, used in glDrawArrays
+    std::vector<size_t> mVertexCounts; // Number of vertices for each shape, used in glDrawArrays
 };

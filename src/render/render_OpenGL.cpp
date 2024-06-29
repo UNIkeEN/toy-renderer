@@ -29,70 +29,81 @@ void OpenGLRender::init() {
 void OpenGLRender::setup(const std::shared_ptr<Scene>& scene) {
     cleanup();
     size_t modelCount = scene->getModelCount();
-    mVAOs.resize(modelCount);
-    mVBOs.resize(modelCount);
-    mTextures.resize(modelCount);
-    mVertexCounts.resize(modelCount);
+    size_t totalShapeCount = scene->getTotalShapeCount();
+    mVAOs.resize(totalShapeCount);
+    mVBOs.resize(totalShapeCount);
+    mTextures.resize(totalShapeCount);
+    mVertexCounts.resize(totalShapeCount);
 
-    glGenVertexArrays(modelCount, mVAOs.data());
-    glGenBuffers(modelCount, mVBOs.data());
+    glGenVertexArrays(totalShapeCount, mVAOs.data());
+    glGenBuffers(totalShapeCount, mVBOs.data());
 
+    size_t shapeIndex = 0;
     for (size_t i = 0; i < modelCount; ++i) {
-        const std::vector<glm::vec3>& vertices = scene->getVertices(i);
-        const std::vector<glm::vec3>& normals = scene->getNormals(i);
-        const std::vector<glm::vec2>& texCoords = scene->getTexCoords(i);
-        const std::string& texturePath = scene->getTexturePath(i);
+        size_t shapeCount = scene->getShapeCount(i);
+        for (size_t j = 0; j < shapeCount; ++j) {
+            if (!scene->isShapeVisible(i, j)) {
+                shapeIndex++;
+                continue;
+            }
+            const std::vector<glm::vec3>& vertices = scene->getVertices(i, j);
+            const std::vector<glm::vec3>& normals = scene->getNormals(i, j);
+            const std::vector<glm::vec2>& texCoords = scene->getTexCoords(i, j);
+            const std::string& texturePath = scene->getTexturePath(i, j);
 
-        std::vector<float> bufferData;
-        for (size_t j = 0; j < vertices.size(); ++j) {
-            bufferData.push_back(vertices[j].x);
-            bufferData.push_back(vertices[j].y);
-            bufferData.push_back(vertices[j].z);
+            std::vector<float> bufferData;
+            for (size_t k = 0; k < vertices.size(); ++k) {
+                bufferData.push_back(vertices[k].x);
+                bufferData.push_back(vertices[k].y);
+                bufferData.push_back(vertices[k].z);
+
+                if (!normals.empty()) {
+                    bufferData.push_back(normals[k].x);
+                    bufferData.push_back(normals[k].y);
+                    bufferData.push_back(normals[k].z);
+                }
+
+                if (!texCoords.empty()) {
+                    bufferData.push_back(texCoords[k].x);
+                    bufferData.push_back(texCoords[k].y);
+                }
+            }
+
+            glBindVertexArray(mVAOs[shapeIndex]);
+
+            glBindBuffer(GL_ARRAY_BUFFER, mVBOs[shapeIndex]);
+            glBufferData(GL_ARRAY_BUFFER, bufferData.size() * sizeof(float), bufferData.data(), GL_STATIC_DRAW);
+
+            size_t stride = 3;
+            if (!normals.empty()) stride += 3;
+            if (!texCoords.empty()) stride += 2;
+
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)0);
+            glEnableVertexAttribArray(0);
+            size_t offset = 3 * sizeof(float);
+            mVertexCounts[shapeIndex] = vertices.size();
 
             if (!normals.empty()) {
-                bufferData.push_back(normals[j].x);
-                bufferData.push_back(normals[j].y);
-                bufferData.push_back(normals[j].z);
+                glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)offset);
+                glEnableVertexAttribArray(1);
+                offset += 3 * sizeof(float);
             }
 
             if (!texCoords.empty()) {
-                bufferData.push_back(texCoords[j].x);
-                bufferData.push_back(texCoords[j].y);
+                glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)offset);
+                glEnableVertexAttribArray(2);
             }
+
+            // Load texture
+            if (!texturePath.empty()) {
+                loadTexture(texturePath, mTextures[shapeIndex]);
+            }
+
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindVertexArray(0);
+
+            shapeIndex++;
         }
-
-        glBindVertexArray(mVAOs[i]);
-
-        glBindBuffer(GL_ARRAY_BUFFER, mVBOs[i]);
-        glBufferData(GL_ARRAY_BUFFER, bufferData.size() * sizeof(float), bufferData.data(), GL_STATIC_DRAW);
-
-        size_t stride = 3;
-        if (!normals.empty()) stride += 3;
-        if (!texCoords.empty()) stride += 2;
-
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)0);
-        glEnableVertexAttribArray(0);
-        size_t offset = 3 * sizeof(float);
-        mVertexCounts[i] = vertices.size();
-
-        if (!normals.empty()) {
-            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)offset);
-            glEnableVertexAttribArray(1);
-            offset += 3 * sizeof(float);
-        }
-
-        if (!texCoords.empty()) {
-            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride * sizeof(float), (void*)offset);
-            glEnableVertexAttribArray(2);
-        }
-
-        // Load texture
-        if (!texturePath.empty()) {
-            loadTexture(texturePath, mTextures[i]);
-        }
-
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
     }
 }
 
@@ -139,6 +150,7 @@ void OpenGLRender::cleanup() {
         glDeleteTextures(mTextures.size(), mTextures.data());
         mTextures.clear();
     }
+    mVertexCounts.clear();
 }
 
 void OpenGLRender::loadTexture(const std::string& path, GLuint& textureID) {

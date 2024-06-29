@@ -20,6 +20,14 @@ void Scene::removeModel(size_t index) {
     }
 }
 
+size_t Scene::getTotalShapeCount() const {
+    size_t count = 0;
+    for (const auto& model : mModels) {
+        count += model.shapes.size();
+    }
+    return count;
+}
+
 void Scene::cleanup() {
     mModels.clear();
 }
@@ -46,13 +54,15 @@ void Scene::loadModel(const std::string& path, Model& model) {
 
     // load vertices information(pos, normal, texcoord)
     for (const auto& shape : shapes) {
+        Shape _shape;
+        _shape.name = shape.name;
         for (const auto& index : shape.mesh.indices) {
             glm::vec3 vertex = {
                 attrib.vertices[3 * index.vertex_index + 0],
                 attrib.vertices[3 * index.vertex_index + 1],
                 attrib.vertices[3 * index.vertex_index + 2]
             };
-            model.vertices.push_back(vertex);
+            _shape.vertices.push_back(vertex);
 
             if (!attrib.normals.empty()) {
                 glm::vec3 normal = {
@@ -60,7 +70,7 @@ void Scene::loadModel(const std::string& path, Model& model) {
                     attrib.normals[3 * index.normal_index + 1],
                     attrib.normals[3 * index.normal_index + 2]
                 };
-                model.normals.push_back(normal);
+                _shape.normals.push_back(normal);
             }
 
             if (!attrib.texcoords.empty()) {
@@ -68,18 +78,22 @@ void Scene::loadModel(const std::string& path, Model& model) {
                     attrib.texcoords[2 * index.texcoord_index + 0],
                     attrib.texcoords[2 * index.texcoord_index + 1]
                 };
-                model.texCoords.push_back(texCoord);
+                _shape.texCoords.push_back(texCoord);
             }
         }
+
+        // load texture path
+        if (!materials.empty() && shape.mesh.material_ids[0] >= 0) {
+            size_t material_id = shape.mesh.material_ids[0];
+            if (material_id < materials.size() && !materials[material_id].diffuse_texname.empty()) {
+                std::filesystem::path texture_path = base_dir / materials[material_id].diffuse_texname;
+                _shape.texturePath = texture_path.string();
+            }
+        }
+
+        model.shapes.push_back(_shape);
     }
 
-    // load texture path
-    if (!materials.empty() && !materials[0].diffuse_texname.empty()) {
-        std::filesystem::path texture_path = base_dir / materials[0].diffuse_texname;
-        model.texturePath = texture_path.string();
-    }
-
-    // std::cout << model.vertices.size() << " vertices loaded" << std::endl;
     // std::cout << model.normals.size() << " normals loaded" << std::endl;
     // std::cout << model.texCoords.size() << " texCoords loaded" << std::endl;
     // std::cout << "Texture path: " << model.texturePath << std::endl;
