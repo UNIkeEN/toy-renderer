@@ -14,21 +14,30 @@ void Camera::move(const glm::vec3& offset) {
 
 void Camera::rotate(float yaw, float pitch) {
     mYaw += yaw;
-    mPitch += pitch;
-
-    if (mPitch > 89.0f)
-        mPitch = 89.0f;
-    if (mPitch < -89.0f)
-        mPitch = -89.0f;
-
-    update();
+    setPitch(mPitch + pitch);
+    // Omit update() here, setPitch() will call
 }
 
 void Camera::zoom(float offset) {
-    mFOV -= offset;
-    if (mFOV < 30.0f)
-        mFOV = 30.0f;
-    if (mFOV > 120.0f)
-        mFOV = 120.0f;
-    update();
+    setFOV(mFOV - offset);
+}
+
+// Implement of Copy assignment operator
+Camera& Camera::operator=(const Camera& other) {
+    try {
+    if (this != &other) {
+        mPosition = other.mPosition;
+        mDirection = other.mDirection;
+        mUp = other.mUp;
+        mYaw = other.mYaw;
+        mPitch = other.mPitch;
+        mFOV = other.mFOV;
+        mNear = other.mNear;
+        mFar = other.mFar;
+        mAspectRatio = other.mAspectRatio;
+    }
+    return *this;
+    } catch (const std::exception& e) {
+            std::cerr << e.what() << std::endl;
+        }
 }

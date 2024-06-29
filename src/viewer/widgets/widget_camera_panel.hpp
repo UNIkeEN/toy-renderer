@@ -3,6 +3,8 @@
 #include "widget.h"
 #include "../viewer.h"
 #include "../camera.h"
+#include "../camera_perspective.hpp"
+#include "../camera_orthographic.hpp"
 
 class CameraPanelWidget : public Widget {
 public:
@@ -15,6 +17,18 @@ public:
         ImGui::SetNextWindowPos(ImVec2(30, 410), ImGuiCond_Once);
 
         ImGui::Begin(mName.c_str(), &mVisible);
+
+        ImGui::TextWrapped("Type");
+        const char* cameraTypes[] = { "Perspective", "Orthographic" };
+        static int currentCameraType = viewer.getCamera()->getType() == CAMERA_TYPE::Perspective ? 0 : 1;
+        if (ImGui::Combo("##Camera Type", &currentCameraType, cameraTypes, IM_ARRAYSIZE(cameraTypes))) {
+            if (currentCameraType == 0) {
+                viewer.setCamera(std::make_shared<PerspectiveCamera>(*(viewer.getCamera())));
+            } else if (currentCameraType == 1) {
+                viewer.setCamera(std::make_shared<OrthographicCamera>(*(viewer.getCamera())));
+            }
+        }
+        ImGui::Spacing();
 
         ImGui::TextWrapped("Move Speed");
         float movementSpeed = viewer.getMovementSpeed();
@@ -34,12 +48,12 @@ public:
         ImGui::PopItemWidth();
         ImGui::Spacing();
 
-        if (auto camera = std::dynamic_pointer_cast<Camera>(viewer.getCamera())) {
+        if (viewer.getCamera()->getType() == CAMERA_TYPE::Perspective) {
             ImGui::TextWrapped("FOV");
-            float fov = camera->getFOV();
+            float fov = viewer.getCamera()->getFOV();
             ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
             if (ImGui::SliderFloat("##Camera FOV", &fov, 30.0f, 90.0f)) {
-                camera->setFOV(fov);
+                viewer.getCamera()->setFOV(fov);
             }
             ImGui::PopItemWidth();
         }

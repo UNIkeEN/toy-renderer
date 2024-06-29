@@ -23,7 +23,7 @@ public:
 
     [[nodiscard]] std::shared_ptr<Render> getRender() const { return mRender; }
     [[nodiscard]] std::shared_ptr<Camera> getCamera() const { return mCamera; }
-    void setCamera(const std::shared_ptr<Camera>& camera) { mCamera = camera; }
+    void setCamera(const std::shared_ptr<Camera>& camera) { mCamera = camera; mCamera->update(); }
     [[nodiscard]] std::shared_ptr<Scene> getScene() const { return mScene; }
     void setScene(const std::shared_ptr<Scene>& scene) { mScene = scene; }
 

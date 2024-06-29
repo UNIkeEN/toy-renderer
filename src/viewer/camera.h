@@ -1,13 +1,19 @@
 #pragma once
 
+#include "utils/enum.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 class Camera {
 public:
+    Camera() = default;
     virtual ~Camera() = default;
+    Camera(const Camera& other) {*this = other;}
+    Camera& operator=(const Camera& other);
 
     virtual void update() = 0;
+    
+    [[nodiscard]] virtual CAMERA_TYPE getType() const = 0;
 
     [[nodiscard]] glm::mat4 getViewMatrix() const { return mViewMatrix; }
     [[nodiscard]] glm::mat4 getProjectionMatrix() const { return mProjectionMatrix; }
@@ -19,9 +25,9 @@ public:
     [[nodiscard]] float getYaw() const { return mYaw; }
     void setYaw(const float yaw) { mYaw = yaw; update(); }
     [[nodiscard]] float getPitch() const { return mPitch; }
-    void setPitch(const float pitch) { mPitch = pitch; update(); }
+    void setPitch(const float pitch) { mPitch = glm::clamp(pitch, -89.0f, 89.0f); update(); }
     [[nodiscard]] float getFOV() const { return mFOV; }
-    void setFOV(const float fov) { mFOV = fov; update(); }
+    void setFOV(const float fov) { mFOV = glm::clamp(fov, 30.0f, 90.0f); update(); }
     [[nodiscard]] float getNear() const { return mNear; }
     void setNear(const float near) { mNear = near; update(); }
     [[nodiscard]] float getFar() const { return mFar; }
@@ -45,6 +51,6 @@ protected:
     float mPitch = 0.0f;
     float mFOV = 45.0f;
     float mNear = 0.1f;
-    float mFar = 100.0f;
+    float mFar = 1000.0f;
     float mAspectRatio;
 };

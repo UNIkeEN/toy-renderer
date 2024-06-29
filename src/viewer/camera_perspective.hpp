@@ -4,8 +4,15 @@
 
 class PerspectiveCamera : public Camera {
 public:
-    PerspectiveCamera(float aspectRatio) : Camera() {
+    explicit PerspectiveCamera(float aspectRatio) : Camera() {
         setAspectRatio(aspectRatio);
+        PerspectiveCamera::update();
+    }
+
+    explicit PerspectiveCamera(const Camera& other) : Camera(other) {}
+
+    [[nodiscard]] CAMERA_TYPE getType() const override {
+        return CAMERA_TYPE::Perspective;
     }
 
     void update() override {
@@ -17,4 +24,7 @@ public:
         mViewMatrix = glm::lookAt(mPosition, mPosition + mDirection, mUp);
         mProjectionMatrix = glm::perspective(glm::radians(mFOV), mAspectRatio, mNear, mFar);
     }
+
+    void zoom(float offset) {}
+
 };
