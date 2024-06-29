@@ -6,8 +6,8 @@
 
 OpenGLRender::~OpenGLRender() {
     OpenGLRender::cleanup();
-    if (mShader) {
-        mShader->cleanup();
+    for (auto& shader : mShaders) {
+        shader.second->cleanup();
     }
 }
 
@@ -21,11 +21,16 @@ void OpenGLRender::init() {
         throw std::runtime_error("Failed to initialize GLAD");
     }
 
-    mShader = std::make_unique<ShaderProgram>(
-        findFile("assets/shaders/glsl/basic.vert"),
-        findFile("assets/shaders/glsl/basic.frag")
-    );
-    mShader->use();
+    mShaders.emplace_back(SHADER_TYPE::Solid, std::make_shared<ShaderProgram>(
+        findFile("assets/shaders/glsl/solid.vert"),
+        findFile("assets/shaders/glsl/solid.frag")
+    ));
+    mShaders.emplace_back(SHADER_TYPE::MaterialPreview, std::make_shared<ShaderProgram>(
+        findFile("assets/shaders/glsl/material-preview.vert"),
+        findFile("assets/shaders/glsl/material-preview.frag")
+    ));
+    
+    setCurrentShader(SHADER_TYPE::MaterialPreview);
 
     glEnable(GL_DEPTH_TEST);
 }
@@ -115,21 +120,22 @@ void OpenGLRender::render(const glm::mat4& viewMatrix, const glm::mat4& projecti
     glClearColor(0.00f, 0.00f, 0.00f, 1.00f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    mShader->use();
+    auto shader = mCurrentShader.second;
+    shader->use();
 
-    auto modelMatrix = glm::mat4(1.0f);
-    mShader->setMat4("model", modelMatrix);
-    mShader->setMat4("view", viewMatrix);
-    mShader->setMat4("projection", projectionMatrix);
+    shader->setMat4("model", glm::mat4(1.0f));
+    shader->setMat4("view", viewMatrix);
+    shader->setMat4("projection", projectionMatrix);
 
     for (size_t i = 0; i < mVAOs.size(); ++i) {
         glBindVertexArray(mVAOs[i]);
 
+        shader->setBool("hasTexture", mTextures[i]);
         if (mTextures[i]) {
             // Use GL_TETURE0 all the time
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, mTextures[i]);
-            mShader->setInt("texture_diffuse", 0);
+            shader->setInt("textureDiffuse", 0);  
         }
 
         glDrawArrays(GL_TRIANGLES, 0, mVertexCounts[i]);

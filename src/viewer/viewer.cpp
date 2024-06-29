@@ -4,7 +4,7 @@
 
 Viewer::Viewer(int width, int height, std::shared_ptr<Render> render, std::shared_ptr<Camera> camera, std::shared_ptr<Scene> scene)
     : mWidth(width), mHeight(height), mWindow(nullptr), mRender(std::move(render)), mCamera(std::move(camera)), mScene(std::move(scene)),
-      mFirstMouse(true), mLastX((double) width / 2.0f), mLastY(height / 2.0f), mDeltaTime(0.0f), mLastFrame(0.0f),
+      mFirstMouse(true), mLeftMouseButtonPressed(false), mLastX((double) width / 2.0f), mLastY(height / 2.0f), mDeltaTime(0.0f), mLastFrame(0.0f),
       mMovementSpeed(20.0f), mMouseSensitivity(0.15f), 
       mWidgets(createAllWidgets()) {}
 
@@ -129,12 +129,13 @@ void Viewer::mainLoop() {
 void Viewer::renderMainMenu() {
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("View")) {
-            for (auto& widget : mWidgets) {
-                bool visible = widget->isVisible();
-                if (ImGui::MenuItem(widget->getName().c_str(), NULL, &visible)) {
-                    widget->toggle();
+            for (auto& widget : mWidgets) 
+                if (widget->getName().find("##") != 0) {
+                    bool visible = widget->isVisible();
+                    if (ImGui::MenuItem(widget->getName().c_str(), NULL, &visible)) {
+                        widget->toggle();
+                    }
                 }
-            }
             ImGui::EndMenu();
         }
         ImGui::EndMainMenuBar();

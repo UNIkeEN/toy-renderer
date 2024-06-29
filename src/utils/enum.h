@@ -9,3 +9,11 @@ enum class CAMERA_TYPE {
     Orthographic,
     Perspective
 };
+
+enum class SHADER_TYPE {
+    Wireframe,
+    Solid,
+    MaterialPreview,
+    Rendered,
+    Custom
+};

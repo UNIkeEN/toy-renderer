@@ -1,5 +1,6 @@
 #pragma once
 
+#include "shader.h"
 #include "utils/enum.h"
 #include "viewer/scene.h"
 #include <GLFW/glfw3.h>
@@ -22,4 +23,16 @@ public:
     virtual void cleanup() = 0;
 
     [[nodiscard]] virtual RENDERER_TYPE getType() const = 0;
+
+    [[nodiscard]] const std::vector<std::pair<SHADER_TYPE, std::shared_ptr<ShaderProgram>>>& getShaders() const { return mShaders; }
+    [[nodiscard]] const std::pair<SHADER_TYPE, std::shared_ptr<ShaderProgram>>& getCurrentShader() const { return mCurrentShader; }
+    void setCurrentShader(SHADER_TYPE type) {
+        for (const auto& shader : mShaders) {
+            if (shader.first == type) { mCurrentShader = shader; mCurrentShader.second->use(); break;}
+        }
+    }
+
+protected:
+    std::vector<std::pair<SHADER_TYPE, std::shared_ptr<ShaderProgram>>> mShaders;
+    std::pair<SHADER_TYPE, std::shared_ptr<ShaderProgram>> mCurrentShader;
 };

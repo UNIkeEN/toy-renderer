@@ -2,7 +2,6 @@
 
 #include <glad/glad.h>
 #include "render.h"
-#include "shader.h"
 #include <vector>
 
 class OpenGLRender : public Render {
@@ -20,7 +19,7 @@ public:
 private:
     void loadTexture(const std::string& path, GLuint& textureID);
 
-    std::unique_ptr<ShaderProgram> mShader;
+    // std::unique_ptr<ShaderProgram> mShader;
     std::vector<GLuint> mVAOs;
     std::vector<GLuint> mVBOs;
     std::vector<GLuint> mEBOs;
