@@ -231,6 +231,7 @@ void Viewer::mouseButtonCallback(GLFWwindow* window, int button, int action, int
 }
 
 void Viewer::framebufferSizeCallback(GLFWwindow* window, int width, int height) {
+    if (width == 0 || height == 0) return;
     glViewport(0, 0, width, height);
     mCamera->setAspectRatio(static_cast<float>(width) / static_cast<float>(height));
 }

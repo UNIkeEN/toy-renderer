@@ -33,3 +33,5 @@ protected:
 };
 
 std::vector<std::shared_ptr<Widget>> createAllWidgets();
+
+inline void PushStyleRedButton();
