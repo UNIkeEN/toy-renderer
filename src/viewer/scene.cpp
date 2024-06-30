@@ -17,7 +17,7 @@ void Scene::addModel(const std::string& path) {
 
 void Scene::removeModel(size_t index) {
     if (index < mModels.size()) {
-        mModels.erase(mModels.begin() + index);
+        mModels.erase(mModels.begin() + static_cast<std::vector<Scene::Model>::difference_type>(index));
     }
 }
 

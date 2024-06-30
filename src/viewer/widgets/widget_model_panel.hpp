@@ -6,7 +6,7 @@
 
 class ModelPanelWidget : public Widget {
 public:
-    ModelPanelWidget(const std::string& name) : Widget(name) {}
+    explicit ModelPanelWidget(const std::string& name) : Widget(name) {}
 
     void render(Viewer& viewer) override {
         if (!mVisible) return;
@@ -27,7 +27,7 @@ public:
 
         ImGui::Begin(mName.c_str(), &mVisible, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 
-        ImGui::TextWrapped(viewer.getScene()->getModelName(selectModelIndex).c_str());
+        ImGui::TextWrapped("%s", viewer.getScene()->getModelName(selectModelIndex).c_str());
         size_t visibleShapes = 0;
         for (size_t i = 0; i < viewer.getScene()->getShapeCount(selectModelIndex); ++i)
             if (viewer.getScene()->isShapeVisible(selectModelIndex, i)) visibleShapes++;
@@ -50,9 +50,9 @@ public:
 
         // Position controls
         for (int i = 0; i < 3; ++i) {
-            const char* labels[3] = { "Location X", "Y", "Z" };
+            static const char* labels[3] = { "Location X", "Y", "Z" };
             ImGui::SetCursorPosX(colWidth - ImGui::CalcTextSize(labels[i]).x);
-            ImGui::Text(labels[i]);
+            ImGui::Text("%s", labels[i]);
             ImGui::SameLine();
             std::string id = "##pos" + std::to_string(i);
             if (ImGui::InputFloat(id.c_str(), &_pos[i], 0.01f, 0.0f, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue)) {
@@ -66,9 +66,9 @@ public:
 
         // Rotation controls
         for (int i = 0; i < 3; ++i) {
-            const char* labels[3] = { "Rotation X", "Y", "Z" };
+            static const char* labels[3] = { "Rotation X", "Y", "Z" };
             ImGui::SetCursorPosX(colWidth - ImGui::CalcTextSize(labels[i]).x);
-            ImGui::Text(labels[i]);
+            ImGui::Text("%s", labels[i]);
             ImGui::SameLine();
             std::string id = "##rot" + std::to_string(i);
             if (ImGui::InputFloat(id.c_str(), &_rot[i], 1.0f, 0.0f, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue)) {
@@ -82,9 +82,9 @@ public:
 
         // Scale controls
         for (int i = 0; i < 3; ++i) {
-            const char* labels[3] = { "Scale X", "Y", "Z" };
+            static const char* labels[3] = { "Scale X", "Y", "Z" };
             ImGui::SetCursorPosX(colWidth - ImGui::CalcTextSize(labels[i]).x);
-            ImGui::Text(labels[i]);
+            ImGui::Text("%s", labels[i]);
             ImGui::SameLine();
             std::string id = "##scale" + std::to_string(i);
             if (ImGui::InputFloat(id.c_str(), &_scale[i], 0.01f, 0.0f, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue)) {

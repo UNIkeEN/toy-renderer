@@ -33,7 +33,7 @@ public:
         // It make bugs
         
         for (size_t i = 0; i < viewer.getScene()->getModelCount(); ++i) {
-            ImGui::PushID(i);
+            ImGui::PushID(static_cast<int>(i));
             bool allShapesInvisible = true;
             bool modelSelected = false;
             for (size_t j = 0; j < viewer.getScene()->getShapeCount(i); ++j) {
@@ -56,18 +56,17 @@ public:
             }
 
             std::string id = "##Model Item" + std::to_string(i);
-            bool treeOpen = ImGui::TreeNodeEx(id.c_str(), ImGuiTreeNodeFlags_AllowOverlap | modelSelected == true ? ImGuiTreeNodeFlags_Selected : 0);
+            bool treeOpen = ImGui::TreeNodeEx(id.c_str(), ImGuiTreeNodeFlags_AllowOverlap | (modelSelected == true ? ImGuiTreeNodeFlags_Selected : 0));
 
             ImGui::SameLine();
-            ImGui::TextWrapped(viewer.getScene()->getModelName(i).c_str());
+            ImGui::TextWrapped("%s", viewer.getScene()->getModelName(i).c_str());
             if (ImGui::IsItemClicked()) {
                 viewer.getScene()->toggleSelectModel(i);
             }
             // If use "if (ImGui::TreeNode(...) {sameline, button ...}" then the button will be hidden when the tree is closed.
-            if (allShapesInvisible) ImGui::PopStyleColor();
-            else if (modelSelected) ImGui::PopStyleColor();
+            if (allShapesInvisible || modelSelected) ImGui::PopStyleColor();
 
-            ImGui::SameLine(ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize("Remove").x + (treeOpen ? 15 : -5));
+            ImGui::SameLine(ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize("Remove").x + (treeOpen ? 15.0f : -5.0f));
             PushStyleRedButton();
             if (ImGui::Button("Remove")) {
                 viewer.getScene()->removeModel(i);
@@ -77,12 +76,12 @@ public:
 
             if (treeOpen) {
                 for (size_t j = 0; j < viewer.getScene()->getShapeCount(i); ++j) {
-                    ImGui::PushID(j);
+                    ImGui::PushID(static_cast<int>(j));
                     bool isVisible = viewer.getScene()->isShapeVisible(i, j);
                     if (!isVisible) {
                         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
                     }
-                    ImGui::TextWrapped(viewer.getScene()->getShapeName(i, j).c_str());
+                    ImGui::TextWrapped("%s", viewer.getScene()->getShapeName(i, j).c_str());
                     if (!isVisible) {
                         ImGui::PopStyleColor();
                     }
@@ -108,7 +107,7 @@ public:
     }
 
 private:
-    static void addModel(Viewer& viewer) {
+    static void addModel(const Viewer& viewer) {
         // https://github.com/btzy/nativefiledialog-extended?tab=readme-ov-file#basic-usage
 
         NFD_Init();

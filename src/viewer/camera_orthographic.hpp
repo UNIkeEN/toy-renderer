@@ -1,7 +1,6 @@
 #pragma once
 
 #include "camera.h"
-#include <iostream>
 
 class OrthographicCamera : public Camera {
 public:
@@ -18,9 +17,9 @@ public:
 
     void update() override {
         glm::vec3 front;
-        front.x = cos(glm::radians(mYaw)) * cos(glm::radians(mPitch));
-        front.y = sin(glm::radians(mPitch));
-        front.z = sin(glm::radians(mYaw)) * cos(glm::radians(mPitch));
+        front.x = static_cast<float>(cos(glm::radians(mYaw)) * cos(glm::radians(mPitch)));
+        front.y = static_cast<float>(sin(glm::radians(mPitch)));
+        front.z = static_cast<float>(sin(glm::radians(mYaw)) * cos(glm::radians(mPitch)));
         mDirection = glm::normalize(front);
         mViewMatrix = glm::lookAt(mPosition, mPosition + mDirection, mUp);
 

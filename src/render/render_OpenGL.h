@@ -1,8 +1,8 @@
 #pragma once
 
+#include <vector>
 #include <glad/glad.h>
 #include "render.h"
-#include <vector>
 
 class OpenGLRender : public Render {
 public:
@@ -20,7 +20,7 @@ public:
     [[nodiscard]] RENDERER_TYPE getType() const override;
     
 private:
-    void loadTexture(const std::string& path, GLuint& textureID);
+    static void loadTexture(const std::string& path, GLuint& textureID);
 
     // std::unique_ptr<ShaderProgram> mShader;
     std::vector<GLuint> mVAOs;

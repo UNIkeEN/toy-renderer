@@ -1,3 +1,4 @@
+#include <glad/glad.h>
 #include "shader.h"
 #include <fstream>
 #include <sstream>
@@ -47,7 +48,7 @@ GLuint ShaderProgram::loadShader(const std::string& path, GLenum type) {
         buffer << file.rdbuf();
         code = buffer.str();
     } catch (std::ifstream::failure& e) {
-        std::cerr << "Error opening shader file: " << path << std::endl;
+        std::cerr << "Error opening shader file: " << path << std::endl << e.what() << std::endl;
     }
     
     const char* shaderCode = code.c_str();
@@ -82,7 +83,7 @@ void ShaderProgram::use() const {
 }
 
 void ShaderProgram::setBool(const std::string &name, bool value) const {
-    glUniform1i(glGetUniformLocation(mProgram, name.c_str()), (int)value);
+    glUniform1i(glGetUniformLocation(mProgram, name.c_str()), static_cast<int>(value));
 }
 
 void ShaderProgram::setInt(const std::string &name, int value) const {

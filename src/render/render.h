@@ -3,7 +3,6 @@
 #include "shader.h"
 #include "utils/enum.h"
 #include "viewer/scene.h"
-#include <GLFW/glfw3.h>
 #include <memory>
 
 class Render {

@@ -44,8 +44,8 @@ public:
     void resetControl();
     
 protected:
-    glm::mat4 mViewMatrix;
-    glm::mat4 mProjectionMatrix;
+    glm::mat4 mViewMatrix{};
+    glm::mat4 mProjectionMatrix{};
     glm::vec3 mPosition = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 mDirection = glm::vec3(0.0f, 0.0f, -1.0f);
     glm::vec3 mUp = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -54,5 +54,5 @@ protected:
     float mFOV = 45.0f;
     float mNear = 0.1f;
     float mFar = 1000.0f;
-    float mAspectRatio;
+    float mAspectRatio = 0.0f;
 };

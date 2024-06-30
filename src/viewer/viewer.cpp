@@ -1,10 +1,13 @@
-#include "viewer.h"
-#include "utils/file.h"
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
 #include <iostream>
+#include "viewer/viewer.h"
+#include "utils/file.h"
 
 Viewer::Viewer(int width, int height, std::shared_ptr<Render> render, std::shared_ptr<Camera> camera, std::shared_ptr<Scene> scene)
     : mWidth(width), mHeight(height), mWindow(nullptr), mRender(std::move(render)), mCamera(std::move(camera)), mScene(std::move(scene)),
-      mFirstMouse(true), mLeftMouseButtonPressed(false), mLastX((double) width / 2.0f), mLastY(height / 2.0f), mDeltaTime(0.0f), mLastFrame(0.0f),
+      mFirstMouse(true), mLeftMouseButtonPressed(false), mLastX(static_cast<float>(width) / 2.0f), mLastY(static_cast<float>(height) / 2.0f), mDeltaTime(0.0f), mLastFrame(0.0f),
       mMovementSpeed(20.0f), mMouseSensitivity(0.15f), 
       mWidgets(createAllWidgets()) {}
 
@@ -134,7 +137,7 @@ void Viewer::renderMainMenu() {
             for (auto& widget : mWidgets) 
                 if (widget->getName().find("##") != 0) {
                     bool visible = widget->isVisible();
-                    if (ImGui::MenuItem(widget->getName().c_str(), NULL, &visible)) {
+                    if (ImGui::MenuItem(widget->getName().c_str(), nullptr, &visible)) {
                         widget->toggle();
                     }
                 }
@@ -189,7 +192,7 @@ void Viewer::keyboardCallback(GLFWwindow* window, int key, int scancode, int act
             if (glfwGetKey(mWindow, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
                 movement -= mCamera->getUp();
             if (glm::length(movement) > 0.0f) {
-                mCamera->move(movement, mMovementSpeed * std::max(mDeltaTime, 1.0 / 60.0f));
+                mCamera->move(movement, static_cast<float>(mMovementSpeed * std::max(mDeltaTime, 1.0 / 60.0f)));
             }
         }
     }
@@ -204,8 +207,8 @@ void Viewer::mouseCallback(GLFWwindow* window, double xpos, double ypos) {
         mFirstMouse = false;
     }
 
-    float xoffset = (xpos - mLastX) * mMouseSensitivity;
-    float yoffset = (mLastY - ypos) * mMouseSensitivity; // Reversed Y
+    auto xoffset = static_cast<float>((xpos - mLastX) * mMouseSensitivity);
+    auto yoffset = static_cast<float>((mLastY - ypos) * mMouseSensitivity); // Reversed Y
 
     mLastX = xpos;
     mLastY = ypos;
@@ -216,7 +219,7 @@ void Viewer::mouseCallback(GLFWwindow* window, double xpos, double ypos) {
 void Viewer::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
     if (ImGui::GetIO().WantCaptureMouse) return;
 
-    mCamera->zoom(yoffset);   // Zoom in/out by changing FOV
+    mCamera->zoom(static_cast<float>(yoffset));   // Zoom in/out by changing FOV
 }
 
 void Viewer::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {

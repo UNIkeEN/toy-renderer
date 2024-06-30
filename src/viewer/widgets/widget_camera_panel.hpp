@@ -8,7 +8,7 @@
 
 class CameraPanelWidget : public Widget {
 public:
-    CameraPanelWidget(const std::string& name) : Widget(name) {}
+    explicit CameraPanelWidget(const std::string& name) : Widget(name) {}
 
     void render(Viewer& viewer) override {
         if (!mVisible) return;

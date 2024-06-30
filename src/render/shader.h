@@ -1,6 +1,5 @@
 #pragma once
 
-#include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <string>
@@ -21,5 +20,5 @@ public:
 
 private:
     GLuint mProgram;
-    GLuint loadShader(const std::string& path, GLenum type);
+    static GLuint loadShader(const std::string& path, GLenum type);
 };

@@ -1,5 +1,5 @@
 #include "camera.h"
-#include <iostream>
+
 // Implement of eneral camera control functions
 
 void Camera::move(const glm::vec3& direction, float velocity) {

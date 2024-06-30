@@ -25,7 +25,7 @@ public:
     }
 
 private:
-    void drawCoordinateAxes(Viewer& viewer) {
+    static void drawCoordinateAxes(const Viewer& viewer) {
         // Guided by GPT
         
         ImGuiIO& io = ImGui::GetIO();

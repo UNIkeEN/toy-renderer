@@ -1,8 +1,7 @@
-#include <glad/glad.h>
 #include <memory>
+#include "render/render_OpenGL.h"
 #include "viewer/viewer.h"
 #include "viewer/camera_perspective.hpp"
-#include "render/render_OpenGL.h"
 
 int main() {
 
