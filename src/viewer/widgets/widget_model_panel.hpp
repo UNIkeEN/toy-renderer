@@ -3,7 +3,6 @@
 #include "widget.h"
 #include "../viewer.h"
 
-
 class ModelPanelWidget : public Widget {
 public:
     explicit ModelPanelWidget(const std::string& name) : Widget(name) {}

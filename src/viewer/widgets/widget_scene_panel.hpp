@@ -112,10 +112,17 @@ private:
 
         NFD_Init();
         nfdu8char_t *outPath;
-        nfdu8filteritem_t filters[1] = {{ "Wavefront", "obj" }};
+
+        std::vector<nfdu8filteritem_t> filters;
+        for (const auto& format : viewer.getScene()->supportedFormats) {
+            nfdu8filteritem_t filter;
+            filter.name = format.second.c_str();
+            filter.spec = format.first.c_str() + 1;  // Skip the dot
+            filters.push_back(filter);
+        }
         nfdopendialogu8args_t args = {nullptr};
-        args.filterList = filters;
-        args.filterCount = 1;
+        args.filterList = filters.data();
+        args.filterCount = filters.size();
         nfdresult_t result = NFD_OpenDialogU8_With(&outPath, &args);
         if (result == NFD_OKAY) {
             viewer.getScene()->addModel(outPath);

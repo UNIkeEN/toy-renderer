@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include <unordered_map>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -14,6 +15,8 @@ public:
     void removeModel(size_t index);
     void selectModel(size_t modelIndex);
     void toggleSelectModel(size_t modelIndex);
+
+    static const std::vector<std::pair<std::string, std::string>> supportedFormats;
 
     [[nodiscard]] const std::vector<glm::vec3>& getVertices(size_t modelIndex, size_t shapeIndex) const { return mModels[modelIndex].shapes[shapeIndex].vertices; };
     [[nodiscard]] const std::vector<glm::vec3>& getNormals(size_t modelIndex, size_t shapeIndex) const { return mModels[modelIndex].shapes[shapeIndex].normals; };
@@ -63,6 +66,14 @@ private:
 
     std::vector<Model> mModels;
 
-    static void loadModel(const std::string& path, Model& model);
     void updateModelMatrix(size_t modelIndex);
+
+    using LoadModelFunc = std::function<void(const std::string&, Model&)>;
+    static const std::unordered_map<std::string, Scene::LoadModelFunc> loadModelFunctions;
+
+    static void loadOBJModel(const std::string& path, Model& model);
+    static void loadPLYModel(const std::string& path, Model& model);
+
+    static glm::vec3 calcVertNormal(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2);    // Calculate normals if not provided in the model file
+
 };
