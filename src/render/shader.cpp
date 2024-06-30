@@ -5,13 +5,22 @@
 
 // Learn from: https://learnopengl-cn.github.io/01%20Getting%20started/05%20Shaders/
 
-ShaderProgram::ShaderProgram(const std::string& vertexPath, const std::string& fragmentPath) {
+ShaderProgram::ShaderProgram(
+        const std::string& vertexPath, 
+        const std::string& fragmentPath,
+        const std::string& geometryPath
+    ) {
     GLuint vertexShader = loadShader(vertexPath, GL_VERTEX_SHADER);
     GLuint fragmentShader = loadShader(fragmentPath, GL_FRAGMENT_SHADER);
+    GLuint geometryShader = 0;
+    if (!geometryPath.empty()) {
+        geometryShader = loadShader(geometryPath, GL_GEOMETRY_SHADER);
+    }
 
     mProgram = glCreateProgram();
     glAttachShader(mProgram, vertexShader);
     glAttachShader(mProgram, fragmentShader);
+    if (geometryShader) { glAttachShader(mProgram, geometryShader); }
     glLinkProgram(mProgram);
 
     GLint success;
@@ -24,6 +33,7 @@ ShaderProgram::ShaderProgram(const std::string& vertexPath, const std::string& f
 
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
+    if (geometryShader) { glDeleteShader(geometryShader); }
 }
 
 GLuint ShaderProgram::loadShader(const std::string& path, GLenum type) {

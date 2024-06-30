@@ -7,7 +7,7 @@
 
 class ShaderProgram {
 public:
-    ShaderProgram(const std::string& vertexPath, const std::string& fragmentPath);
+    ShaderProgram(const std::string& vertexPath, const std::string& fragmentPath, const std::string& geometryPath = "");
     ~ShaderProgram();
 
     void use() const;
