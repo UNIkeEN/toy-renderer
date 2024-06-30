@@ -12,6 +12,7 @@ void Scene::addModel(const std::string& path) {
     Model model;
     loadModel(path, model);
     mModels.push_back(model);
+    selectModel(mModels.size() - 1, true);
 }
 
 void Scene::removeModel(size_t index) {
@@ -27,6 +28,28 @@ size_t Scene::getTotalShapeCount() const {
     }
     return count;
 }
+
+void Scene::selectModel(size_t modelIndex, bool selected) {
+    if (selected) {
+        for (auto& model : mModels) {   // Deselect all models
+            for (auto& shape : model.shapes) {
+                shape.selected = false;
+            }
+        }
+        if (modelIndex < mModels.size()) {  // Select the target model
+            for (auto& shape : mModels[modelIndex].shapes) {
+                shape.selected = true;
+            }
+        }
+    } else {
+        if (modelIndex < mModels.size()) {
+            for (auto& shape : mModels[modelIndex].shapes) {
+                shape.selected = false;
+            }
+        }
+    }
+}
+
 
 void Scene::cleanup() {
     mModels.clear();

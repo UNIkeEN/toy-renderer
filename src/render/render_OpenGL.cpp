@@ -33,6 +33,10 @@ void OpenGLRender::init() {
         findFile("assets/shaders/glsl/wireframe.vert"),
         findFile("assets/shaders/glsl/wireframe.frag")
     );
+    mShaders[SHADER_TYPE::Outline] = std::make_shared<ShaderProgram>(
+        findFile("assets/shaders/glsl/outline.vert"),
+        findFile("assets/shaders/glsl/outline.frag")
+    );
     
     setCurrentShader(SHADER_TYPE::MaterialPreview);
 
@@ -124,7 +128,9 @@ void OpenGLRender::render(const std::shared_ptr<Scene>& scene, const glm::mat4& 
     glClearColor(0.00f, 0.00f, 0.00f, 1.00f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glPolygonMode(GL_FRONT_AND_BACK, mCurrentShader.first == SHADER_TYPE::Wireframe ? GL_LINE : GL_FILL);
+    glLineWidth(1.0f);
 
+    // First pass: shapes
     auto shader = mCurrentShader.second;
     shader->use();
 
@@ -141,6 +147,10 @@ void OpenGLRender::render(const std::shared_ptr<Scene>& scene, const glm::mat4& 
                 shapeIndex++;
                 continue;
             }
+            if (mCurrentShader.first == SHADER_TYPE::Wireframe && scene->isShapeSelected(i, j)) {
+                shapeIndex++;
+                continue;
+            }   // Skip selected shapes in wireframe mode, avoid overlapping of wireframe and outline
             glBindVertexArray(mVAOs[shapeIndex]);
 
             shader->setBool("hasTexture", mTextures[shapeIndex]);
@@ -157,20 +167,35 @@ void OpenGLRender::render(const std::shared_ptr<Scene>& scene, const glm::mat4& 
         }
     }
 
-    // for (size_t i = 0; i < mVAOs.size(); ++i) {
-    //     glBindVertexArray(mVAOs[i]);
+    // Second pass: outline
+    auto outlineShader = mShaders[SHADER_TYPE::Outline];
+    outlineShader->use();
+    outlineShader->setMat4("model", glm::mat4(1.0f));
+    outlineShader->setMat4("view", viewMatrix);
+    outlineShader->setMat4("projection", projectionMatrix);
+    if (mCurrentShader.first == SHADER_TYPE::Wireframe) outlineShader->setFloat("offset", 0.0f);
+    else outlineShader->setFloat("offset", 0.05f);
+    
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glLineWidth(1.6f);
 
-    //     shader->setBool("hasTexture", mTextures[i]);
-    //     if (mTextures[i]) {
-    //         // Use GL_TETURE0 all the time
-    //         glActiveTexture(GL_TEXTURE0);
-    //         glBindTexture(GL_TEXTURE_2D, mTextures[i]);
-    //         shader->setInt("textureDiffuse", 0);  
-    //     }
+    shapeIndex = 0;
+    modelCount = scene->getModelCount();
+    for (size_t i = 0; i < modelCount; ++i) {
+        size_t shapeCount = scene->getShapeCount(i);
+        for (size_t j = 0; j < shapeCount; ++j) {
+            if (!scene->isShapeVisible(i, j) || !scene->isShapeSelected(i, j)) {
+                shapeIndex++;
+                continue;
+            }
+            glBindVertexArray(mVAOs[shapeIndex]);
+            glDrawArrays(GL_TRIANGLES, 0, mVertexCounts[shapeIndex]);
+            glBindVertexArray(0);
+            shapeIndex++;
+        }
+    }
 
-    //     glDrawArrays(GL_TRIANGLES, 0, mVertexCounts[i]);
-    //     glBindVertexArray(0);
-    // }
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
 void OpenGLRender::cleanup() {

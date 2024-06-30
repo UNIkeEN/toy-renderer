@@ -27,20 +27,33 @@ public:
         for (size_t i = 0; i < viewer.getScene()->getModelCount(); ++i) {
             ImGui::PushID(i);
             bool allShapesInvisible = true;
+            bool modelSelected = false;
             for (size_t j = 0; j < viewer.getScene()->getShapeCount(i); ++j) {
                 if (viewer.getScene()->isShapeVisible(i, j)) {
                     allShapesInvisible = false;
                     break;
                 }
             }
+            for (size_t j = 0; j < viewer.getScene()->getShapeCount(i); ++j) {
+                if (viewer.getScene()->isShapeSelected(i, j)) {
+                    modelSelected = true;
+                    break;
+                }
+            }
+
             if (allShapesInvisible) {
                 ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
+            } else if (modelSelected) {
+                ImGui::PushStyleColor(ImGuiCol_Header, ImGui::GetStyleColorVec4(ImGuiCol_FrameBg)); 
             }
-            bool treeOpen = ImGui::TreeNodeEx(viewer.getScene()->getModelName(i).c_str());
+
+            bool treeOpen = ImGui::TreeNodeEx(viewer.getScene()->getModelName(i).c_str(), modelSelected ? ImGuiTreeNodeFlags_Selected : 0);
+            if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) { // Click on the text (instead of collapse button) to select the model
+                viewer.getScene()->selectModel(i, !modelSelected);
+            }
             // If use "if (ImGui::TreeNode(...) {sameline, button ...}" then the button will be hidden when the tree is closed.
-            if (allShapesInvisible) {
-                ImGui::PopStyleColor();
-            }
+            if (allShapesInvisible) ImGui::PopStyleColor();
+            else if (modelSelected) ImGui::PopStyleColor();
 
             ImGui::SameLine(ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize("Remove").x + (treeOpen ? 15 : -5));
             PushStyleRedButton();
@@ -54,12 +67,15 @@ public:
                 for (size_t j = 0; j < viewer.getScene()->getShapeCount(i); ++j) {
                     ImGui::PushID(j);
                     bool isVisible = viewer.getScene()->isShapeVisible(i, j);
-                    if (!isVisible) {
+                    if (!isVisible && !modelSelected) {
                         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
                     }
                     ImGui::TextWrapped(viewer.getScene()->getShapeName(i, j).c_str());
-                    if (!isVisible) {
+                    if (!isVisible && !modelSelected) {
                         ImGui::PopStyleColor();
+                    }
+                    if (ImGui::IsItemClicked()) {
+                        viewer.getScene()->selectModel(i, !modelSelected);
                     }
 
                     ImGui::SameLine(ImGui::GetContentRegionAvail().x - 10);

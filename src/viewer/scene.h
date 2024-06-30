@@ -16,13 +16,17 @@ public:
     [[nodiscard]] const std::vector<glm::vec2>& getTexCoords(size_t modelIndex, size_t shapeIndex) const { return mModels[modelIndex].shapes[shapeIndex].texCoords; };
     [[nodiscard]] const std::string& getTexturePath(size_t modelIndex, size_t shapeIndex) const { return mModels[modelIndex].shapes[shapeIndex].texturePath; };
     [[nodiscard]] const std::string& getShapeName(size_t modelIndex, size_t shapeIndex) const { return mModels[modelIndex].shapes[shapeIndex].name; };
+
     [[nodiscard]] const bool& isShapeVisible(size_t modelIndex, size_t shapeIndex) const { return mModels[modelIndex].shapes[shapeIndex].visible; };
     void setShapeVisible(size_t modelIndex, size_t shapeIndex, bool visible) { mModels[modelIndex].shapes[shapeIndex].visible = visible; };
+    [[nodiscard]] const bool& isShapeSelected(size_t modelIndex, size_t shapeIndex) const { return mModels[modelIndex].shapes[shapeIndex].selected; };
+    void setShapeSelected(size_t modelIndex, size_t shapeIndex, bool selected) { mModels[modelIndex].shapes[shapeIndex].selected = selected; };
 
     [[nodiscard]] const std::string& getModelName(size_t modelIndex) const { return mModels[modelIndex].name; };
     [[nodiscard]] size_t getModelCount() const { return mModels.size(); };
     [[nodiscard]] size_t getShapeCount(size_t modelIndex) const { return mModels[modelIndex].shapes.size(); };
     [[nodiscard]] size_t getTotalShapeCount() const;
+    void selectModel(size_t modelIndex, bool selected = true);
 
     void cleanup();
 
@@ -34,6 +38,7 @@ private:
         std::string texturePath;
         std::string name;
         bool visible = true;
+        bool selected = false;
     };
 
     struct Model {
