@@ -24,6 +24,12 @@ public:
         ImGui::Separator();
 
         ImGui::BeginChild("ModelList", ImVec2(0, 0), false);
+
+        if (ImGui::IsMouseClicked(0) && ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
+            ImGui::SetWindowFocus();
+            viewer.getScene()->selectModel(INT_MAX, true);  // Deselect all models
+        }
+        
         for (size_t i = 0; i < viewer.getScene()->getModelCount(); ++i) {
             ImGui::PushID(i);
             bool allShapesInvisible = true;
