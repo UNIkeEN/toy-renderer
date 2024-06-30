@@ -154,21 +154,22 @@ void Viewer::renderWidgets() {
 }
 
 void Viewer::cleanup() {
-    // Cleanup ImGui
-    if (mRender->getType() == RENDERER_TYPE::OpenGL) {
-        ImGui_ImplOpenGL3_Shutdown();
-    } else if (mRender->getType() == RENDERER_TYPE::Vulkan) {
-        // ImGui_ImplVulkan_Shutdown();
-    }
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-
-    // Cleanup GLFW
     if (mWindow) {
+        // Cleanup ImGui
+        if (mRender->getType() == RENDERER_TYPE::OpenGL) {
+            ImGui_ImplOpenGL3_Shutdown();
+        } else if (mRender->getType() == RENDERER_TYPE::Vulkan) {
+            // ImGui_ImplVulkan_Shutdown();
+        }
+        ImGui_ImplGlfw_Shutdown();
+        ImGui::DestroyContext();
+
+        // Cleanup GLFW
         glfwDestroyWindow(mWindow);
         mWindow = nullptr;
+
+        glfwTerminate();
     }
-    glfwTerminate();
 }
 
 void Viewer::keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
