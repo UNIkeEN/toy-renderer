@@ -12,7 +12,7 @@ void Scene::addModel(const std::string& path) {
     Model model;
     loadModel(path, model);
     mModels.push_back(model);
-    selectModel(mModels.size() - 1, true);
+    selectModel(mModels.size() - 1);
 }
 
 void Scene::removeModel(size_t index) {
@@ -29,25 +29,29 @@ size_t Scene::getTotalShapeCount() const {
     return count;
 }
 
-void Scene::selectModel(size_t modelIndex, bool selected) {
-    if (selected) {
-        for (auto& model : mModels) {   // Deselect all models
-            for (auto& shape : model.shapes) {
-                shape.selected = false;
-            }
-        }
-        if (modelIndex < mModels.size()) {  // Select the target model
-            for (auto& shape : mModels[modelIndex].shapes) {
-                shape.selected = true;
-            }
-        }
-    } else {
-        if (modelIndex < mModels.size()) {
-            for (auto& shape : mModels[modelIndex].shapes) {
-                shape.selected = false;
-            }
+void Scene::selectModel(size_t modelIndex) {
+    for (auto & mModel : mModels) {
+        for (auto & shape : mModel.shapes) {
+            shape.selected = false;
         }
     }
+    if (modelIndex < mModels.size()) {
+        for (auto & shape : mModels[modelIndex].shapes) {
+            shape.selected = true;
+        }
+    }
+}
+
+void Scene::toggleSelectModel(size_t modelIndex) {
+    bool selected = false;
+    for (auto & shape : mModels[modelIndex].shapes) {
+        if (shape.selected) {
+            selected = true;
+            break;
+        }
+    }
+    if (selected) selectModel(INT_MAX);
+    else selectModel(modelIndex);
 }
 
 
@@ -120,4 +124,21 @@ void Scene::loadModel(const std::string& path, Model& model) {
     // std::cout << model.normals.size() << " normals loaded" << std::endl;
     // std::cout << model.texCoords.size() << " texCoords loaded" << std::endl;
     // std::cout << "Texture path: " << model.texturePath << std::endl;
+}
+
+void Scene::updateModelMatrix(size_t modelIndex) {
+    if (modelIndex >= mModels.size()) return;
+
+    Model& model = mModels[modelIndex];
+    glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), model.position);
+    glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(model.rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+    rotationMatrix = glm::rotate(rotationMatrix, glm::radians(model.rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+    rotationMatrix = glm::rotate(rotationMatrix, glm::radians(model.rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), model.scale);
+
+    glm::mat4 modelMatrix = translationMatrix * rotationMatrix * scaleMatrix;
+
+    for (auto& shape : model.shapes) {
+        shape.modelMatrix = modelMatrix;
+    }
 }

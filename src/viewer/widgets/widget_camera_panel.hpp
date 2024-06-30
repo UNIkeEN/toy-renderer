@@ -65,7 +65,9 @@ public:
         }
 
         // Postion and Orientation
+        ImGui::Spacing();
         ImGui::TextWrapped("Position & Orientation");
+
         glm::vec3 position = viewer.getCamera()->getPosition();
         float yaw = viewer.getCamera()->getYaw();
         float pitch = viewer.getCamera()->getPitch();
@@ -73,6 +75,8 @@ public:
 
         float colWidth = (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().WindowPadding.x * 2) / 4.0f;
         ImGui::PushItemWidth(colWidth);
+
+        // X and Yaw row
         ImGui::SetCursorPosX(colWidth - ImGui::CalcTextSize("X").x);
         ImGui::Text("X");
         ImGui::SameLine();

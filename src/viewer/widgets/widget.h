@@ -9,8 +9,9 @@
 // Forward declaration to avoid circular dependency
 class Viewer;
 class HUDWidget;
-class ModelPanelWidget;
+class ScenePanelWidget;
 class CameraPanelWidget;
+class ModelPanelWidget;
 class TopToolbarWidget;
 
 class Widget {

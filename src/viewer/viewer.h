@@ -61,6 +61,7 @@ protected:
 
     std::vector<std::shared_ptr<Widget>> mWidgets;  // ImGUI widgets
 
+    // ImGUI rendering functions
     void renderMainMenu();
     void renderWidgets();
 };

@@ -2,127 +2,101 @@
 
 #include "widget.h"
 #include "../viewer.h"
-#include <cstdio>
-#include <nfd.h>  
+
 
 class ModelPanelWidget : public Widget {
 public:
-    explicit ModelPanelWidget(std::string name) : Widget(std::move(name)) {}
+    ModelPanelWidget(const std::string& name) : Widget(name) {}
 
     void render(Viewer& viewer) override {
         if (!mVisible) return;
 
-        ImGui::SetNextWindowSize(ImVec2(400, 500), ImGuiCond_Once);
-        ImGui::SetNextWindowPos(ImVec2(30, 100), ImGuiCond_Once);
-        
-        ImGui::Begin(mName.c_str(), &mVisible);
-        
-        if (ImGui::Button("Add")) {
-            addModel(viewer);
+        size_t selectModelIndex = -1;
+        for (size_t i = 0; i < viewer.getScene()->getModelCount(); ++i){
+            for (size_t j = 0; j < viewer.getScene()->getShapeCount(i); ++j){
+                if (viewer.getScene()->isShapeSelected(i, j)){
+                    selectModelIndex = i;
+                    break;
+                }
+            }
         }
+        if (selectModelIndex == -1) return; // No model selected
 
+        ImGui::SetNextWindowSize(ImVec2(400, 500), ImGuiCond_Always);
+        ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - 430, 100), ImGuiCond_Always);
+
+        ImGui::Begin(mName.c_str(), &mVisible, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+
+        ImGui::TextWrapped(viewer.getScene()->getModelName(selectModelIndex).c_str());
+        size_t visibleShapes = 0;
+        for (size_t i = 0; i < viewer.getScene()->getShapeCount(selectModelIndex); ++i)
+            if (viewer.getScene()->isShapeVisible(selectModelIndex, i)) visibleShapes++;
+
+        ImGui::TextWrapped("%d/%d shape%s visible.", visibleShapes, viewer.getScene()->getShapeCount(selectModelIndex), visibleShapes > 1 ? "s are" : " is");
         ImGui::Separator();
+        ImGui::TextWrapped("Transform");
+        ImGui::Spacing();
 
-        ImGui::BeginChild("ModelList", ImVec2(0, 0), false);
+        glm::vec3 position = viewer.getScene()->getModelPosition(selectModelIndex);
+        glm::vec3 rotation = viewer.getScene()->getModelRotation(selectModelIndex);
+        glm::vec3 scale = viewer.getScene()->getModelScale(selectModelIndex);
 
-        if (ImGui::IsMouseClicked(0) && ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
-            ImGui::SetWindowFocus();
-            viewer.getScene()->selectModel(INT_MAX, true);  // Deselect all models
+        float _pos[3] = { position.x, position.y, position.z };
+        float _rot[3] = { rotation.x, rotation.y, rotation.z };
+        float _scale[3] = { scale.x, scale.y, scale.z };
+
+        float colWidth = (ImGui::GetContentRegionAvail().x - ImGui::GetStyle().WindowPadding.x * 2) / 2.0f;
+        ImGui::PushItemWidth(colWidth);
+
+        // Position controls
+        for (int i = 0; i < 3; ++i) {
+            const char* labels[3] = { "Location X", "Y", "Z" };
+            ImGui::SetCursorPosX(colWidth - ImGui::CalcTextSize(labels[i]).x);
+            ImGui::Text(labels[i]);
+            ImGui::SameLine();
+            std::string id = "##pos" + std::to_string(i);
+            if (ImGui::InputFloat(id.c_str(), &_pos[i], 0.01f, 0.0f, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue)) {
+                viewer.getScene()->setModelPosition(selectModelIndex, glm::vec3(_pos[0], _pos[1], _pos[2]));
+            }
+            if (ImGui::IsItemDeactivatedAfterEdit()) {
+                viewer.getScene()->setModelPosition(selectModelIndex, glm::vec3(_pos[0], _pos[1], _pos[2]));
+            }
         }
-        
-        for (size_t i = 0; i < viewer.getScene()->getModelCount(); ++i) {
-            ImGui::PushID(i);
-            bool allShapesInvisible = true;
-            bool modelSelected = false;
-            for (size_t j = 0; j < viewer.getScene()->getShapeCount(i); ++j) {
-                if (viewer.getScene()->isShapeVisible(i, j)) {
-                    allShapesInvisible = false;
-                    break;
-                }
-            }
-            for (size_t j = 0; j < viewer.getScene()->getShapeCount(i); ++j) {
-                if (viewer.getScene()->isShapeSelected(i, j)) {
-                    modelSelected = true;
-                    break;
-                }
-            }
+        ImGui::Spacing();
 
-            if (allShapesInvisible) {
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
-            } else if (modelSelected) {
-                ImGui::PushStyleColor(ImGuiCol_Header, ImGui::GetStyleColorVec4(ImGuiCol_FrameBg)); 
+        // Rotation controls
+        for (int i = 0; i < 3; ++i) {
+            const char* labels[3] = { "Rotation X", "Y", "Z" };
+            ImGui::SetCursorPosX(colWidth - ImGui::CalcTextSize(labels[i]).x);
+            ImGui::Text(labels[i]);
+            ImGui::SameLine();
+            std::string id = "##rot" + std::to_string(i);
+            if (ImGui::InputFloat(id.c_str(), &_rot[i], 1.0f, 0.0f, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue)) {
+                viewer.getScene()->setModelRotation(selectModelIndex, glm::vec3(_rot[0], _rot[1], _rot[2]));
             }
-
-            bool treeOpen = ImGui::TreeNodeEx(viewer.getScene()->getModelName(i).c_str(), modelSelected ? ImGuiTreeNodeFlags_Selected : 0);
-            if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) { // Click on the text (instead of collapse button) to select the model
-                viewer.getScene()->selectModel(i, !modelSelected);
+            if (ImGui::IsItemDeactivatedAfterEdit()) {
+                viewer.getScene()->setModelRotation(selectModelIndex, glm::vec3(_rot[0], _rot[1], _rot[2]));
             }
-            // If use "if (ImGui::TreeNode(...) {sameline, button ...}" then the button will be hidden when the tree is closed.
-            if (allShapesInvisible) ImGui::PopStyleColor();
-            else if (modelSelected) ImGui::PopStyleColor();
-
-            ImGui::SameLine(ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize("Remove").x + (treeOpen ? 15 : -5));
-            PushStyleRedButton();
-            if (ImGui::Button("Remove")) {
-                viewer.getScene()->removeModel(i);
-                viewer.getRender()->setup(viewer.getScene());
-            }
-            ImGui::PopStyleColor(3);
-
-            if (treeOpen) {
-                for (size_t j = 0; j < viewer.getScene()->getShapeCount(i); ++j) {
-                    ImGui::PushID(j);
-                    bool isVisible = viewer.getScene()->isShapeVisible(i, j);
-                    if (!isVisible && !modelSelected) {
-                        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
-                    }
-                    ImGui::TextWrapped(viewer.getScene()->getShapeName(i, j).c_str());
-                    if (!isVisible && !modelSelected) {
-                        ImGui::PopStyleColor();
-                    }
-                    if (ImGui::IsItemClicked()) {
-                        viewer.getScene()->selectModel(i, !modelSelected);
-                    }
-
-                    ImGui::SameLine(ImGui::GetContentRegionAvail().x - 10);
-                    if (ImGui::Checkbox("##visible", &isVisible)) {     // Can't make this checkbox between PushStyleColor() and PopStyleColor()!
-                        viewer.getScene()->setShapeVisible(i, j, isVisible);
-                        // viewer.getRender()->setup(viewer.getScene());
-                    }
-                    ImGui::PopID();
-                }
-                ImGui::TreePop();
-            }
-            ImGui::PopID();
         }
-        ImGui::EndChild();
+        ImGui::Spacing();
+
+        // Scale controls
+        for (int i = 0; i < 3; ++i) {
+            const char* labels[3] = { "Scale X", "Y", "Z" };
+            ImGui::SetCursorPosX(colWidth - ImGui::CalcTextSize(labels[i]).x);
+            ImGui::Text(labels[i]);
+            ImGui::SameLine();
+            std::string id = "##scale" + std::to_string(i);
+            if (ImGui::InputFloat(id.c_str(), &_scale[i], 0.01f, 0.0f, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue)) {
+                viewer.getScene()->setModelScale(selectModelIndex, glm::vec3(_scale[0], _scale[1], _scale[2]));
+            }
+            if (ImGui::IsItemDeactivatedAfterEdit()) {
+                viewer.getScene()->setModelScale(selectModelIndex, glm::vec3(_scale[0], _scale[1], _scale[2]));
+            }
+        }
+
+        ImGui::PopItemWidth();
 
         ImGui::End();
-    }
-
-private:
-    static void addModel(Viewer& viewer) {
-        // https://github.com/btzy/nativefiledialog-extended?tab=readme-ov-file#basic-usage
-
-        NFD_Init();
-        nfdu8char_t *outPath;
-        nfdu8filteritem_t filters[1] = {{ "Wavefront", "obj" }};
-        nfdopendialogu8args_t args = {nullptr};
-        args.filterList = filters;
-        args.filterCount = 1;
-        nfdresult_t result = NFD_OpenDialogU8_With(&outPath, &args);
-        if (result == NFD_OKAY) {
-            viewer.getScene()->addModel(outPath);
-            viewer.getRender()->setup(viewer.getScene());
-            NFD_FreePathU8(outPath);
-        }
-        else if (result == NFD_CANCEL) {
-            printf("User pressed cancel.\n");
-        }
-        else {
-            printf("Error: %s\n", NFD_GetError());
-        }
-
-        NFD_Quit();
     }
 };

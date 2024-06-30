@@ -134,7 +134,6 @@ void OpenGLRender::render(const std::shared_ptr<Scene>& scene, const glm::mat4& 
     auto shader = mCurrentShader.second;
     shader->use();
 
-    shader->setMat4("model", glm::mat4(1.0f));
     shader->setMat4("view", viewMatrix);
     shader->setMat4("projection", projectionMatrix);
 
@@ -151,6 +150,7 @@ void OpenGLRender::render(const std::shared_ptr<Scene>& scene, const glm::mat4& 
                 shapeIndex++;
                 continue;
             }   // Skip selected shapes in wireframe mode, avoid overlapping of wireframe and outline
+            shader->setMat4("model", scene->getModelMatrix(i, j));
             glBindVertexArray(mVAOs[shapeIndex]);
 
             shader->setBool("hasTexture", mTextures[shapeIndex]);
@@ -170,7 +170,6 @@ void OpenGLRender::render(const std::shared_ptr<Scene>& scene, const glm::mat4& 
     // Second pass: outline
     auto outlineShader = mShaders[SHADER_TYPE::Outline];
     outlineShader->use();
-    outlineShader->setMat4("model", glm::mat4(1.0f));
     outlineShader->setMat4("view", viewMatrix);
     outlineShader->setMat4("projection", projectionMatrix);
     if (mCurrentShader.first == SHADER_TYPE::Wireframe) outlineShader->setFloat("offset", 0.0f);
@@ -188,6 +187,7 @@ void OpenGLRender::render(const std::shared_ptr<Scene>& scene, const glm::mat4& 
                 shapeIndex++;
                 continue;
             }
+            outlineShader->setMat4("model", scene->getModelMatrix(i, j));
             glBindVertexArray(mVAOs[shapeIndex]);
             glDrawArrays(GL_TRIANGLES, 0, mVertexCounts[shapeIndex]);
             glBindVertexArray(0);
