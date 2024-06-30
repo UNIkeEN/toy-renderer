@@ -109,6 +109,7 @@ void Viewer::mainLoop() {
         // Render scene
         if (mRender) {
             mRender->render(
+                mScene,
                 mCamera->getViewMatrix(),
                 mCamera->getProjectionMatrix()
             );

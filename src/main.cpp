@@ -6,7 +6,7 @@
 
 int main() {
 
-    const int WIDTH = 2160, HEIGHT = 1440;
+    const int WIDTH = 2560, HEIGHT = 1440;
 
     std::shared_ptr<Render> renderer = std::make_shared<OpenGLRender>();
     std::shared_ptr<Camera> camera = std::make_shared<PerspectiveCamera>(WIDTH/(float)HEIGHT);

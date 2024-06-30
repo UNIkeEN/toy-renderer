@@ -65,7 +65,7 @@ public:
                     ImGui::SameLine(ImGui::GetContentRegionAvail().x - 10);
                     if (ImGui::Checkbox("##visible", &isVisible)) {     // Can't make this checkbox between PushStyleColor() and PopStyleColor()!
                         viewer.getScene()->setShapeVisible(i, j, isVisible);
-                        viewer.getRender()->setup(viewer.getScene());
+                        // viewer.getRender()->setup(viewer.getScene());
                     }
                     ImGui::PopID();
                 }

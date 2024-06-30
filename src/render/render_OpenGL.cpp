@@ -55,10 +55,10 @@ void OpenGLRender::setup(const std::shared_ptr<Scene>& scene) {
     for (size_t i = 0; i < modelCount; ++i) {
         size_t shapeCount = scene->getShapeCount(i);
         for (size_t j = 0; j < shapeCount; ++j) {
-            if (!scene->isShapeVisible(i, j)) {
-                shapeIndex++;
-                continue;
-            }
+            // if (!scene->isShapeVisible(i, j)) {
+            //     shapeIndex++;
+            //     continue;
+            // }
             const std::vector<glm::vec3>& vertices = scene->getVertices(i, j);
             const std::vector<glm::vec3>& normals = scene->getNormals(i, j);
             const std::vector<glm::vec2>& texCoords = scene->getTexCoords(i, j);
@@ -120,7 +120,7 @@ void OpenGLRender::setup(const std::shared_ptr<Scene>& scene) {
     }
 }
 
-void OpenGLRender::render(const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix) {
+void OpenGLRender::render(const std::shared_ptr<Scene>& scene, const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix) {
     glClearColor(0.00f, 0.00f, 0.00f, 1.00f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glPolygonMode(GL_FRONT_AND_BACK, mCurrentShader.first == SHADER_TYPE::Wireframe ? GL_LINE : GL_FILL);
@@ -132,20 +132,45 @@ void OpenGLRender::render(const glm::mat4& viewMatrix, const glm::mat4& projecti
     shader->setMat4("view", viewMatrix);
     shader->setMat4("projection", projectionMatrix);
 
-    for (size_t i = 0; i < mVAOs.size(); ++i) {
-        glBindVertexArray(mVAOs[i]);
+    size_t shapeIndex = 0;
+    size_t modelCount = scene->getModelCount();
+    for (size_t i = 0; i < modelCount; ++i) {
+        size_t shapeCount = scene->getShapeCount(i);
+        for (size_t j = 0; j < shapeCount; ++j) {
+            if (!scene->isShapeVisible(i, j)) {
+                shapeIndex++;
+                continue;
+            }
+            glBindVertexArray(mVAOs[shapeIndex]);
 
-        shader->setBool("hasTexture", mTextures[i]);
-        if (mTextures[i]) {
-            // Use GL_TETURE0 all the time
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, mTextures[i]);
-            shader->setInt("textureDiffuse", 0);  
+            shader->setBool("hasTexture", mTextures[shapeIndex]);
+            if (mTextures[shapeIndex]) {
+                // Use GL_TETURE0 all the time
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D, mTextures[shapeIndex]);
+                shader->setInt("textureDiffuse", 0);  
+            }
+
+            glDrawArrays(GL_TRIANGLES, 0, mVertexCounts[shapeIndex]);
+            glBindVertexArray(0);
+            shapeIndex++;
         }
-
-        glDrawArrays(GL_TRIANGLES, 0, mVertexCounts[i]);
-        glBindVertexArray(0);
     }
+
+    // for (size_t i = 0; i < mVAOs.size(); ++i) {
+    //     glBindVertexArray(mVAOs[i]);
+
+    //     shader->setBool("hasTexture", mTextures[i]);
+    //     if (mTextures[i]) {
+    //         // Use GL_TETURE0 all the time
+    //         glActiveTexture(GL_TEXTURE0);
+    //         glBindTexture(GL_TEXTURE_2D, mTextures[i]);
+    //         shader->setInt("textureDiffuse", 0);  
+    //     }
+
+    //     glDrawArrays(GL_TRIANGLES, 0, mVertexCounts[i]);
+    //     glBindVertexArray(0);
+    // }
 }
 
 void OpenGLRender::cleanup() {

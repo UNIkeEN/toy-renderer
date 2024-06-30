@@ -11,7 +11,10 @@ public:
 
     void init() override;
     void setup(const std::shared_ptr<Scene>& scene) override;
-    void render(const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix) override;
+    void render(
+        const std::shared_ptr<Scene>& scene, 
+        const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix
+    ) override;
     void cleanup() override;
 
     [[nodiscard]] RENDERER_TYPE getType() const override;
