@@ -27,15 +27,16 @@ public:
 
     [[nodiscard]] virtual RENDERER_TYPE getType() const = 0;
 
-    [[nodiscard]] const std::vector<std::pair<SHADER_TYPE, std::shared_ptr<ShaderProgram>>>& getShaders() const { return mShaders; }
+    [[nodiscard]] const std::unordered_map<SHADER_TYPE, std::shared_ptr<ShaderProgram>>& getShaders() const { return mShaders; }
     [[nodiscard]] const std::pair<SHADER_TYPE, std::shared_ptr<ShaderProgram>>& getCurrentShader() const { return mCurrentShader; }
     void setCurrentShader(SHADER_TYPE type) {
-        for (const auto& shader : mShaders) {
-            if (shader.first == type) { mCurrentShader = shader; mCurrentShader.second->use(); break;}
+        auto it = mShaders.find(type);
+        if (it != mShaders.end()) {
+            mCurrentShader = *it;  mCurrentShader.second->use();
         }
     }
 
 protected:
-    std::vector<std::pair<SHADER_TYPE, std::shared_ptr<ShaderProgram>>> mShaders;
+    std::unordered_map<SHADER_TYPE, std::shared_ptr<ShaderProgram>> mShaders;
     std::pair<SHADER_TYPE, std::shared_ptr<ShaderProgram>> mCurrentShader;
 };

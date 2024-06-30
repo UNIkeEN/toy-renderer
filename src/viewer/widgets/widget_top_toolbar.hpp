@@ -26,13 +26,7 @@ public:
         };
 
         for (const auto& shaderButton : shaderButtons) {
-            bool shaderExists = false;
-            for (const auto& shader : renderer->getShaders()) {
-                if (shader.first == std::get<2>(shaderButton)) {
-                    shaderExists = true;
-                    break;
-                }
-            }
+            bool shaderExists = renderer->getShaders().find(std::get<2>(shaderButton)) != renderer->getShaders().end();
 
             if (shaderExists) {
                 bool isSelected = (renderer->getCurrentShader().first == std::get<2>(shaderButton));

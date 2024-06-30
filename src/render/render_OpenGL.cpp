@@ -21,18 +21,18 @@ void OpenGLRender::init() {
         throw std::runtime_error("Failed to initialize GLAD");
     }
 
-    mShaders.emplace_back(SHADER_TYPE::Solid, std::make_shared<ShaderProgram>(
+    mShaders[SHADER_TYPE::Solid] = std::make_shared<ShaderProgram>(
         findFile("assets/shaders/glsl/solid.vert"),
         findFile("assets/shaders/glsl/solid.frag")
-    ));
-    mShaders.emplace_back(SHADER_TYPE::MaterialPreview, std::make_shared<ShaderProgram>(
+    );
+    mShaders[SHADER_TYPE::MaterialPreview] = std::make_shared<ShaderProgram>(
         findFile("assets/shaders/glsl/material-preview.vert"),
         findFile("assets/shaders/glsl/material-preview.frag")
-    ));
-    mShaders.emplace_back(SHADER_TYPE::Wireframe, std::make_shared<ShaderProgram>(
+    );
+    mShaders[SHADER_TYPE::Wireframe] = std::make_shared<ShaderProgram>(
         findFile("assets/shaders/glsl/wireframe.vert"),
         findFile("assets/shaders/glsl/wireframe.frag")
-    ));
+    );
     
     setCurrentShader(SHADER_TYPE::MaterialPreview);
 
