@@ -47,6 +47,7 @@ void OpenGLRender::init() {
 
 void OpenGLRender::setup(const std::shared_ptr<Scene>& scene) {
     cleanup();
+    auto models = scene->getModels();
     size_t modelCount = scene->getModelCount();
     size_t totalShapeCount = scene->getTotalShapeCount();
     mVAOs.resize(totalShapeCount);
@@ -58,33 +59,33 @@ void OpenGLRender::setup(const std::shared_ptr<Scene>& scene) {
     glGenBuffers(totalShapeCount, mVBOs.data());
 
     size_t shapeIndex = 0;
-    for (size_t i = 0; i < modelCount; ++i) {
-        size_t shapeCount = scene->getShapeCount(i);
-        for (size_t j = 0; j < shapeCount; ++j) {
+    for (const auto &model : models) {
+        size_t shapeCount = scene->getShapeCount(model);
+        for (size_t i = 0; i < shapeCount; ++i) {
             // if (!scene->isShapeVisible(i, j)) {
             //     shapeIndex++;
             //     continue;
             // }
-            const std::vector<glm::vec3>& vertices = scene->getVertices(i, j);
-            const std::vector<glm::vec3>& normals = scene->getNormals(i, j);
-            const std::vector<glm::vec2>& texCoords = scene->getTexCoords(i, j);
-            const std::string& texturePath = scene->getTexturePath(i, j);
+            const std::vector<glm::vec3>& vertices = scene->getVertices(model, i);
+            const std::vector<glm::vec3>& normals = scene->getNormals(model, i);
+            const std::vector<glm::vec2>& texCoords = scene->getTexCoords(model, i);
+            const std::string& texturePath = scene->getTexturePath(model, i);
 
             std::vector<float> bufferData;
-            for (size_t k = 0; k < vertices.size(); ++k) {
-                bufferData.push_back(vertices[k].x);
-                bufferData.push_back(vertices[k].y);
-                bufferData.push_back(vertices[k].z);
+            for (size_t j = 0; j < vertices.size(); ++j) {
+                bufferData.push_back(vertices[j].x);
+                bufferData.push_back(vertices[j].y);
+                bufferData.push_back(vertices[j].z);
 
                 if (!normals.empty()) {
-                    bufferData.push_back(normals[k].x);
-                    bufferData.push_back(normals[k].y);
-                    bufferData.push_back(normals[k].z);
+                    bufferData.push_back(normals[j].x);
+                    bufferData.push_back(normals[j].y);
+                    bufferData.push_back(normals[j].z);
                 }
 
                 if (!texCoords.empty()) {
-                    bufferData.push_back(texCoords[k].x);
-                    bufferData.push_back(texCoords[k].y);
+                    bufferData.push_back(texCoords[j].x);
+                    bufferData.push_back(texCoords[j].y);
                 }
             }
 
@@ -140,19 +141,19 @@ void OpenGLRender::render(const std::shared_ptr<Scene>& scene, const glm::mat4& 
     shader->setMat4("projection", projectionMatrix);
 
     size_t shapeIndex = 0;
-    size_t modelCount = scene->getModelCount();
-    for (size_t i = 0; i < modelCount; ++i) {
-        size_t shapeCount = scene->getShapeCount(i);
-        for (size_t j = 0; j < shapeCount; ++j) {
-            if (!scene->isShapeVisible(i, j)) {
+    auto models = scene->getModels();
+    for (const auto& model : models) {
+        size_t shapeCount = scene->getShapeCount(model);
+        for (size_t i = 0; i < shapeCount; ++i) {
+            if (!scene->isShapeVisible(model, i)) {
                 shapeIndex++;
                 continue;
             }
-            if (mCurrentShader.first == SHADER_TYPE::Wireframe && scene->isShapeSelected(i, j)) {
+            if (mCurrentShader.first == SHADER_TYPE::Wireframe && scene->isShapeSelected(model, i)) {
                 shapeIndex++;
                 continue;
             }   // Skip selected shapes in wireframe mode, avoid overlapping of wireframe and outline
-            shader->setMat4("model", scene->getModelMatrix(i, j));
+            shader->setMat4("model", scene->getModelMatrix(model, i));
             glBindVertexArray(mVAOs[shapeIndex]);
 
             shader->setBool("hasTexture", mTextures[shapeIndex]);
@@ -181,15 +182,14 @@ void OpenGLRender::render(const std::shared_ptr<Scene>& scene, const glm::mat4& 
     glLineWidth(1.6f);
 
     shapeIndex = 0;
-    modelCount = scene->getModelCount();
-    for (size_t i = 0; i < modelCount; ++i) {
-        size_t shapeCount = scene->getShapeCount(i);
-        for (size_t j = 0; j < shapeCount; ++j) {
-            if (!scene->isShapeVisible(i, j) || !scene->isShapeSelected(i, j)) {
+    for (const auto& model : models) {
+        size_t shapeCount = scene->getShapeCount(model);
+        for (size_t i = 0; i < shapeCount; ++i) {
+            if (!scene->isShapeVisible(model, i) || !scene->isShapeSelected(model, i)) {
                 shapeIndex++;
                 continue;
             }
-            outlineShader->setMat4("model", scene->getModelMatrix(i, j));
+            outlineShader->setMat4("model", scene->getModelMatrix(model, i));
             glBindVertexArray(mVAOs[shapeIndex]);
             glDrawArrays(GL_TRIANGLES, 0, mVertexCounts[shapeIndex]);
             glBindVertexArray(0);
