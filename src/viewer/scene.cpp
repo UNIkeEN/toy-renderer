@@ -4,6 +4,7 @@
 #include "happly.h"
 #include <iostream>
 #include <filesystem>
+#include <algorithm>
 
 Scene::~Scene() {
     cleanup();
@@ -31,67 +32,65 @@ void Scene::addModel(const std::string& path) {
 
     auto it = loadModelFunctions.find(ext);
     if (it != loadModelFunctions.end()) {
-        Model model;
-        it->second(path, model);    // Use the function pointer to load model
-        mModels.push_back(std::move(model));
-        selectModel(mModels.size() - 1);
+        // Use the function pointer to load model
+        auto model = std::move(it->second(path));
+        mModels.push_back(model);
+        selectModel(model);
     } else {
         throw std::runtime_error("Unsupported file format");
     }
 }
 
-void Scene::removeModel(size_t index) {
-    if (index < mModels.size()) {
-        mModels.erase(mModels.begin() + static_cast<std::vector<Scene::Model>::difference_type>(index));
+void Scene::removeModel(ModelPtr model) {
+    auto it = std::find(mModels.begin(), mModels.end(), model);
+    if (it != mModels.end()) {
+        mModels.erase(it);
     }
 }
 
 size_t Scene::getTotalShapeCount() const {
     size_t count = 0;
     for (const auto& model : mModels) {
-        count += model.shapes.size();
+        count += model->getShapeCount();
     }
     return count;
 }
 
-void Scene::selectModel(size_t modelIndex) {
-    for (auto & mModel : mModels) {
-        for (auto & shape : mModel.shapes) {
-            shape.selected = false;
+void Scene::selectModel(ModelPtr model) {
+    for (auto & model : mModels) {
+        for (size_t i = 0; i < model->getShapeCount(); ++i) {
+           model->setShapeSelected(i, false); 
         }
     }
-    if (modelIndex < mModels.size()) {
-        for (auto & shape : mModels[modelIndex].shapes) {
-            shape.selected = true;
-        }
+    if (model != nullptr)   
+    for (size_t i = 0; i < model->getShapeCount(); ++i) {
+        model->setShapeSelected(i, true);
     }
 }
 
-void Scene::toggleSelectModel(size_t modelIndex) {
+void Scene::toggleSelectModel(ModelPtr model) {
     bool selected = false;
-    for (auto & shape : mModels[modelIndex].shapes) {
-        if (shape.selected) {
+    for (size_t i = 0; i < model->getShapeCount(); ++i) {
+        if (model->isShapeSelected(i)) {
             selected = true;
             break;
         }
     }
-    if (selected) selectModel(INT_MAX);
-    else selectModel(modelIndex);
+    if (selected) selectModel(nullptr);
+    else selectModel(model);
 }
 
-void Scene::updateModelMatrix(size_t modelIndex) {
-    if (modelIndex >= mModels.size()) return;
+void Model::updateModelMatrix() {
 
-    Model& model = mModels[modelIndex];
-    glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), model.position);
-    glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(model.rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-    rotationMatrix = glm::rotate(rotationMatrix, glm::radians(model.rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-    rotationMatrix = glm::rotate(rotationMatrix, glm::radians(model.rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-    glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), model.scale);
+    glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), mPosition);
+    glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(mRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+    rotationMatrix = glm::rotate(rotationMatrix, glm::radians(mRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+    rotationMatrix = glm::rotate(rotationMatrix, glm::radians(mRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), mScale);
 
     glm::mat4 modelMatrix = translationMatrix * rotationMatrix * scaleMatrix;
 
-    for (auto& shape : model.shapes) {
+    for (auto& shape : mShapes) {
         shape.modelMatrix = modelMatrix;
     }
 }
@@ -103,7 +102,9 @@ glm::vec3 Scene::calcVertNormal(const glm::vec3& v0, const glm::vec3& v1, const 
 }
 
 
-void Scene::loadOBJModel(const std::string& path, Model& model) {
+std::shared_ptr<Model> Scene::loadOBJModel(const std::string& path) {
+    Model model;
+
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
@@ -117,7 +118,7 @@ void Scene::loadOBJModel(const std::string& path, Model& model) {
     }
 
     if (!shapes.empty()) {
-        model.name = std::filesystem::path(path).stem().string();
+        model.setName(std::filesystem::path(path).stem().string());
     } else {
         std::cerr << "No shapes found in model" << std::endl;
         throw std::runtime_error("No shapes found in model");
@@ -163,11 +164,14 @@ void Scene::loadOBJModel(const std::string& path, Model& model) {
             }
         }
 
-        model.shapes.push_back(_shape);
+        model.addShape(_shape);
     }
+
+    return std::make_shared<Model>(model);
 }
 
- void Scene::loadPLYModel(const std::string& path, Model& model) {
+std::shared_ptr<Model> Scene::loadPLYModel(const std::string& path) {
+    Model model;
     happly::PLYData plyIn(path);
 
     std::vector<std::array<double, 3>> vPos = plyIn.getVertexPositions();
@@ -175,16 +179,18 @@ void Scene::loadOBJModel(const std::string& path, Model& model) {
     if (plyIn.hasElement("face") && plyIn.getElement("face").hasProperty("vertex_indices")) {
         fInd = plyIn.getFaceIndices<size_t>();
     }
-
+    
+    std::string name;
     if (!vPos.empty()) {
-        model.name = std::filesystem::path(path).stem().string();
+        name = std::filesystem::path(path).stem().string();
+        model.setName(name);
     } else {
         std::cerr << "No vertices found in model" << std::endl;
         throw std::runtime_error("No vertices found in model");
     }
 
     Shape _shape;    // One ply file only has one shape
-    _shape.name = model.name;
+    _shape.name = name;
 
     if (fInd.empty()) {
         // Only vertices, no faces, create small triangles to show in renderer
@@ -286,5 +292,6 @@ void Scene::loadOBJModel(const std::string& path, Model& model) {
         // }
     }
 
-    model.shapes.push_back(_shape);
+    model.addShape(_shape);
+    return std::make_shared<Model>(model);
 }

@@ -15,6 +15,10 @@ public:
         const std::shared_ptr<Scene>& scene, 
         const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix
     ) override;
+    void renderIdx(
+        const std::shared_ptr<Scene>& scene, 
+        const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix
+    ) override;
     void cleanup() override;
 
     [[nodiscard]] RENDERER_TYPE getType() const override;

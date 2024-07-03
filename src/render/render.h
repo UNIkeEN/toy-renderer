@@ -15,8 +15,14 @@ public:
     // Setup buffers and textures for the input scene
     virtual void setup(const std::shared_ptr<Scene>& scene) = 0;
 
-    // Render for the input VP matrix (called every frame in viewer's loop)
+    // Render model for the input VP matrix (called every frame in viewer's loop)
     virtual void render(
+        const std::shared_ptr<Scene>& scene, 
+        const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix
+    ) = 0;
+
+    // Render model indices (for object selection)
+    virtual void renderIdx(
         const std::shared_ptr<Scene>& scene, 
         const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix
     ) = 0;

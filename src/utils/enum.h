@@ -15,6 +15,7 @@ enum class SHADER_TYPE {
     Solid,
     MaterialPreview,
     Rendered,
+    Outline,
+    Index,
     Custom,
-    Outline
 };
