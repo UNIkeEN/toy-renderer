@@ -2,8 +2,14 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <iostream>
+#include <sstream>
+#include <chrono>
+#include <filesystem>
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
 #include "viewer/viewer.h"
 #include "utils/file.h"
+#include "widgets/widget_notification.hpp"
 
 Viewer::Viewer(int width, int height, std::shared_ptr<Render> render, std::shared_ptr<Camera> camera, std::shared_ptr<Scene> scene)
     : mWidth(width), mHeight(height), mWindow(nullptr), mRender(std::move(render)), mCamera(std::move(camera)), mScene(std::move(scene)),
@@ -106,9 +112,9 @@ void Viewer::mainLoop() {
         ImGui::NewFrame();
 
         // Render UI
-        renderMainMenu();
         renderWidgets();
-
+        renderMainMenu();
+        
         // Render scene
         if (mRender) {
             mRender->render(
@@ -178,6 +184,7 @@ void Viewer::keyboardCallback(GLFWwindow* window, int key, int scancode, int act
     if (action == GLFW_PRESS || action == GLFW_REPEAT) {
         if (key == GLFW_KEY_ESCAPE)
             glfwSetWindowShouldClose(window, GLFW_TRUE);
+        else if (key == GLFW_KEY_F12) saveScreenshot();
         else {
             glm::vec3 movement(0.0f), direction(mCamera->getDirection());
             if (glfwGetKey(mWindow, GLFW_KEY_W) == GLFW_PRESS)
@@ -239,5 +246,37 @@ void Viewer::mouseButtonCallback(GLFWwindow* window, int button, int action, int
 void Viewer::framebufferSizeCallback(GLFWwindow* window, int width, int height) {
     if (width == 0 || height == 0) return;
     glViewport(0, 0, width, height);
+    mHeight = height;
+    mWidth = width;
     mCamera->setAspectRatio(static_cast<float>(width) / static_cast<float>(height));
+}
+
+void Viewer::saveScreenshot() {
+    std::filesystem::path shotDir = "screenshots";
+    if (!std::filesystem::exists(shotDir)) {
+        std::filesystem::create_directory(shotDir);
+    }
+
+    auto now = std::chrono::system_clock::now();
+    auto now_time_t = std::chrono::system_clock::to_time_t(now);
+    std::string timestamp = std::to_string(now_time_t) + ".jpg";     // I've try to format, but Windows has sth wrong
+    std::filesystem::path filename = shotDir / timestamp;  
+
+    std::vector<unsigned char> pixels(3 * mWidth * mHeight);
+    glReadPixels(0, 0, mWidth, mHeight, GL_RGB, GL_UNSIGNED_BYTE, pixels.data());
+    // Flip the image vertically
+    std::vector<unsigned char> flippedPixels(3 * mWidth * mHeight);
+    for (int y = 0; y < mHeight; ++y) {
+        memcpy(&flippedPixels[3 * mWidth * (mHeight - 1 - y)], &pixels[3 * mWidth * y], 3 * mWidth);
+    }
+
+    stbi_write_png(filename.string().c_str(), mWidth, mHeight, 3, flippedPixels.data(), 3 * mWidth);
+    createNotification("Screenshot saved to " + filename.string(), 3.0f);
+}
+
+void Viewer::createNotification(const std::string& msg, int duration) {
+    mWidgets.erase(std::remove_if(mWidgets.begin(), mWidgets.end(),
+        [](const std::shared_ptr<Widget>& widget) { return widget->getName() == "##Notification"; }),
+        mWidgets.end());
+    mWidgets.push_back(std::make_shared<NotificationWidget>("##Notification", msg, duration));
 }

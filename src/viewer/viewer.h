@@ -56,9 +56,11 @@ protected:
     void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
     void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 
-    std::vector<std::shared_ptr<Widget>> mWidgets;  // ImGUI widgets
+    void saveScreenshot();
 
+    std::vector<std::shared_ptr<Widget>> mWidgets;  // ImGUI widgets
     // ImGUI rendering functions
     void renderMainMenu();
     void renderWidgets();
+    void createNotification(const std::string& msg, int duration);     // Add new notification widget
 };
