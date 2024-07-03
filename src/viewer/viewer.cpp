@@ -263,7 +263,12 @@ void Viewer::saveScreenshot() {
     std::filesystem::path filename = shotDir / timestamp;  
 
     std::vector<unsigned char> pixels(3 * mWidth * mHeight);
-    glReadPixels(0, 0, mWidth, mHeight, GL_RGB, GL_UNSIGNED_BYTE, pixels.data());
+    if (mRender->getType() == RENDERER_TYPE::OpenGL) {
+        glReadPixels(0, 0, mWidth, mHeight, GL_RGB, GL_UNSIGNED_BYTE, pixels.data());
+    } else if (mRender->getType() == RENDERER_TYPE::Vulkan) {
+        // TODO
+    }
+    
     // Flip the image vertically
     std::vector<unsigned char> flippedPixels(3 * mWidth * mHeight);
     for (int y = 0; y < mHeight; ++y) {
