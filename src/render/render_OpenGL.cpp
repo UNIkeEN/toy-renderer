@@ -39,6 +39,10 @@ void OpenGLRender::init() {
         findFile("assets/shaders/glsl/outline.vert"),
         findFile("assets/shaders/glsl/outline.frag")
     );
+    mShaders[SHADER_TYPE::Index] = std::make_shared<ShaderProgram>(
+        findFile("assets/shaders/glsl/model-index.vert"),
+        findFile("assets/shaders/glsl/model-index.frag")
+    );
     
     setCurrentShader(SHADER_TYPE::MaterialPreview);
 
