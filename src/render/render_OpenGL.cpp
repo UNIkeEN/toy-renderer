@@ -204,6 +204,37 @@ void OpenGLRender::render(const std::shared_ptr<Scene>& scene, const glm::mat4& 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
+void OpenGLRender::renderIdx(const std::shared_ptr<Scene>& scene, const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix){
+    glClearColor(0.00f, 0.00f, 0.00f, 1.00f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+    auto idxShader = mShaders[SHADER_TYPE::Index];
+    idxShader->use();
+    idxShader->setMat4("view", viewMatrix);
+    idxShader->setMat4("projection", projectionMatrix);
+
+    size_t shapeIndex = 0;
+    auto models = scene->getModels();
+    for (size_t modelIndex = 0; modelIndex < models.size(); modelIndex++) {
+        const auto& model = models[modelIndex];
+        idxShader->setInt("modelIdx", modelIndex + 1);
+        // +1, because index 0->(0,0,0,1) is reserved for background (glClearColor)
+        size_t shapeCount = model->getShapeCount();
+        for (size_t i = 0; i < shapeCount; ++i) {
+            if (!model->isShapeVisible(i)) {
+                shapeIndex++;
+                continue;
+            }
+            idxShader->setMat4("model", model->getModelMatrix(i));
+            glBindVertexArray(mVAOs[shapeIndex]);
+            glDrawArrays(GL_TRIANGLES, 0, mVertexCounts[shapeIndex]);
+            glBindVertexArray(0);
+            shapeIndex++;
+        }
+    }
+}
+
 void OpenGLRender::cleanup() {
     if (!mVAOs.empty()) {
         glDeleteVertexArrays(mVAOs.size(), mVAOs.data());

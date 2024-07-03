@@ -41,7 +41,7 @@ protected:
     std::shared_ptr<Scene> mScene;
 
     bool mFirstMouse;    // If the mouse is first used
-    bool mLeftMouseButtonPressed;   
+    int mPressedMouseButton; // Which mouse button is pressed (-1 as none, using GLFW enum)
     double mLastX;       // Last mouse x position
     double mLastY;       // Last mouse y position
     double mDeltaTime;   // Interval between current frame and last frame

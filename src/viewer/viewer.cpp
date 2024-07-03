@@ -7,7 +7,7 @@
 
 Viewer::Viewer(int width, int height, std::shared_ptr<Render> render, std::shared_ptr<Camera> camera, std::shared_ptr<Scene> scene)
     : mWidth(width), mHeight(height), mWindow(nullptr), mRender(std::move(render)), mCamera(std::move(camera)), mScene(std::move(scene)),
-      mFirstMouse(true), mLeftMouseButtonPressed(false), mLastX(static_cast<float>(width) / 2.0f), mLastY(static_cast<float>(height) / 2.0f), mDeltaTime(0.0f), mLastFrame(0.0f),
+      mFirstMouse(true), mPressedMouseButton(-1), mLastX(static_cast<float>(width) / 2.0f), mLastY(static_cast<float>(height) / 2.0f), mDeltaTime(0.0f), mLastFrame(0.0f),
       mMovementSpeed(20.0f), mMouseSensitivity(0.15f), 
       mWidgets(createAllWidgets()) {}
 
@@ -200,21 +200,22 @@ void Viewer::keyboardCallback(GLFWwindow* window, int key, int scancode, int act
 }
 
 void Viewer::mouseCallback(GLFWwindow* window, double xpos, double ypos) {
-    if (!mLeftMouseButtonPressed || ImGui::GetIO().WantCaptureMouse) return;
+    if (mPressedMouseButton < 0 || ImGui::GetIO().WantCaptureMouse) return;
 
-    if (mFirstMouse) {
+    if (mPressedMouseButton == GLFW_MOUSE_BUTTON_MIDDLE) {
+        // Click middle button and drag: rotate camera
+        if (mFirstMouse) {
+            mLastX = xpos;
+            mLastY = ypos;
+            mFirstMouse = false;
+        }
+        auto xoffset = static_cast<float>((xpos - mLastX) * mMouseSensitivity);
+        auto yoffset = static_cast<float>((mLastY - ypos) * mMouseSensitivity); // Reversed Y
         mLastX = xpos;
         mLastY = ypos;
-        mFirstMouse = false;
-    }
 
-    auto xoffset = static_cast<float>((xpos - mLastX) * mMouseSensitivity);
-    auto yoffset = static_cast<float>((mLastY - ypos) * mMouseSensitivity); // Reversed Y
-
-    mLastX = xpos;
-    mLastY = ypos;
-
-    mCamera->rotate(xoffset, yoffset);
+        mCamera->rotate(xoffset, yoffset);
+    } 
 }
 
 void Viewer::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
@@ -226,13 +227,33 @@ void Viewer::scrollCallback(GLFWwindow* window, double xoffset, double yoffset) 
 void Viewer::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
     if (ImGui::GetIO().WantCaptureMouse) return;
 
-    if (button == GLFW_MOUSE_BUTTON_LEFT) {
-        if (action == GLFW_PRESS) {
-            mLeftMouseButtonPressed = true;
-        } else if (action == GLFW_RELEASE) {
-            mLeftMouseButtonPressed = false;
+    if (action == GLFW_PRESS) {
+        mPressedMouseButton = button;
+        if (button == GLFW_MOUSE_BUTTON_LEFT) {
+            // Click left button: select model
+            double xpos, ypos;
+            glfwGetCursorPos(window, &xpos, &ypos);
+            mRender->renderIdx(
+                mScene,
+                mCamera->getViewMatrix(),
+                mCamera->getProjectionMatrix()
+            );
+            unsigned char pixel[4];
+            if (mRender->getType() == RENDERER_TYPE::OpenGL) {
+                glReadPixels(static_cast<int>(xpos), static_cast<int>(mHeight - ypos), 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
+            } else if (mRender->getType() == RENDERER_TYPE::Vulkan) {
+                // TODO
+            }
+            int modelIdx = pixel[0] + (pixel[1] << 8) + (pixel[2] << 16) - 1;
+            if (modelIdx < mScene->getModels().size() && modelIdx >= 0) 
+                mScene->toggleSelectModel(mScene->getModels()[modelIdx]);
+            else mScene->selectModel(nullptr);
+        } 
+    } else if (action == GLFW_RELEASE) {
+        if (button == GLFW_MOUSE_BUTTON_MIDDLE) {
             mFirstMouse = true;
         }
+        mPressedMouseButton = -1;
     }
 }
 
