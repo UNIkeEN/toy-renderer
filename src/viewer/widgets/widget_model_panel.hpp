@@ -12,8 +12,8 @@ public:
 
         ModelPtr selectModel = nullptr;
         for (const auto &model : viewer.getScene()->getModels()){
-            for (size_t j = 0; j < viewer.getScene()->getShapeCount(model); ++j){
-                if (viewer.getScene()->isShapeSelected(model, j)){
+            for (size_t i = 0; i < model->getShapeCount(); ++i){
+                if (model->isShapeSelected(i)){
                     selectModel = model;
                     break;
                 }
@@ -26,19 +26,19 @@ public:
 
         ImGui::Begin(mName.c_str(), &mVisible, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 
-        ImGui::TextWrapped("%s", viewer.getScene()->getModelName(selectModel).c_str());
+        ImGui::TextWrapped("%s", selectModel->getName().c_str());
         size_t visibleShapes = 0;
-        for (size_t i = 0; i < viewer.getScene()->getShapeCount(selectModel); ++i)
-            if (viewer.getScene()->isShapeVisible(selectModel, i)) visibleShapes++;
+        for (size_t i = 0; i < selectModel->getShapeCount(); ++i)
+            if (selectModel->isShapeVisible(i)) visibleShapes++;
 
-        ImGui::TextWrapped("%d/%d shape%s visible.", visibleShapes, viewer.getScene()->getShapeCount(selectModel), visibleShapes > 1 ? "s are" : " is");
+        ImGui::TextWrapped("%d/%d shape%s visible.", visibleShapes, selectModel->getShapeCount(), visibleShapes > 1 ? "s are" : " is");
         ImGui::Separator();
         ImGui::TextWrapped("Transform");
         ImGui::Spacing();
 
-        glm::vec3 position = viewer.getScene()->getModelPosition(selectModel);
-        glm::vec3 rotation = viewer.getScene()->getModelRotation(selectModel);
-        glm::vec3 scale = viewer.getScene()->getModelScale(selectModel);
+        glm::vec3 position = selectModel->getPosition();
+        glm::vec3 rotation = selectModel->getRotation();
+        glm::vec3 scale = selectModel->getScale();
 
         float _pos[3] = { position.x, position.y, position.z };
         float _rot[3] = { rotation.x, rotation.y, rotation.z };
@@ -55,10 +55,10 @@ public:
             ImGui::SameLine();
             std::string id = "##pos" + std::to_string(i);
             if (ImGui::InputFloat(id.c_str(), &_pos[i], 0.01f, 0.0f, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue)) {
-                viewer.getScene()->setModelPosition(selectModel, glm::vec3(_pos[0], _pos[1], _pos[2]));
+                selectModel->setPosition(glm::vec3(_pos[0], _pos[1], _pos[2]));
             }
             if (ImGui::IsItemDeactivatedAfterEdit()) {
-                viewer.getScene()->setModelPosition(selectModel, glm::vec3(_pos[0], _pos[1], _pos[2]));
+                selectModel->setPosition(glm::vec3(_pos[0], _pos[1], _pos[2]));
             }
         }
         ImGui::Spacing();
@@ -71,10 +71,10 @@ public:
             ImGui::SameLine();
             std::string id = "##rot" + std::to_string(i);
             if (ImGui::InputFloat(id.c_str(), &_rot[i], 1.0f, 0.0f, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue)) {
-                viewer.getScene()->setModelRotation(selectModel, glm::vec3(_rot[0], _rot[1], _rot[2]));
+                selectModel->setRotation(glm::vec3(_rot[0], _rot[1], _rot[2]));
             }
             if (ImGui::IsItemDeactivatedAfterEdit()) {
-                viewer.getScene()->setModelRotation(selectModel, glm::vec3(_rot[0], _rot[1], _rot[2]));
+                selectModel->setRotation(glm::vec3(_rot[0], _rot[1], _rot[2]));
             }
         }
         ImGui::Spacing();
@@ -87,10 +87,10 @@ public:
             ImGui::SameLine();
             std::string id = "##scale" + std::to_string(i);
             if (ImGui::InputFloat(id.c_str(), &_scale[i], 0.01f, 0.0f, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue)) {
-                viewer.getScene()->setModelScale(selectModel, glm::vec3(_scale[0], _scale[1], _scale[2]));
+                selectModel->setScale(glm::vec3(_scale[0], _scale[1], _scale[2]));
             }
             if (ImGui::IsItemDeactivatedAfterEdit()) {
-                viewer.getScene()->setModelScale(selectModel, glm::vec3(_scale[0], _scale[1], _scale[2]));
+                selectModel->setScale(glm::vec3(_scale[0], _scale[1], _scale[2]));
             }
         }
 

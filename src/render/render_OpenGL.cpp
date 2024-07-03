@@ -60,16 +60,16 @@ void OpenGLRender::setup(const std::shared_ptr<Scene>& scene) {
 
     size_t shapeIndex = 0;
     for (const auto &model : models) {
-        size_t shapeCount = scene->getShapeCount(model);
+        size_t shapeCount = model->getShapeCount();
         for (size_t i = 0; i < shapeCount; ++i) {
             // if (!scene->isShapeVisible(i, j)) {
             //     shapeIndex++;
             //     continue;
             // }
-            const std::vector<glm::vec3>& vertices = scene->getVertices(model, i);
-            const std::vector<glm::vec3>& normals = scene->getNormals(model, i);
-            const std::vector<glm::vec2>& texCoords = scene->getTexCoords(model, i);
-            const std::string& texturePath = scene->getTexturePath(model, i);
+            const std::vector<glm::vec3>& vertices = model->getVertices(i);
+            const std::vector<glm::vec3>& normals = model->getNormals(i);
+            const std::vector<glm::vec2>& texCoords = model->getTexCoords(i);
+            const std::string& texturePath = model->getTexturePath(i);
 
             std::vector<float> bufferData;
             for (size_t j = 0; j < vertices.size(); ++j) {
@@ -143,17 +143,17 @@ void OpenGLRender::render(const std::shared_ptr<Scene>& scene, const glm::mat4& 
     size_t shapeIndex = 0;
     auto models = scene->getModels();
     for (const auto& model : models) {
-        size_t shapeCount = scene->getShapeCount(model);
+        size_t shapeCount = model->getShapeCount();
         for (size_t i = 0; i < shapeCount; ++i) {
-            if (!scene->isShapeVisible(model, i)) {
+            if (!model->isShapeVisible(i)) {
                 shapeIndex++;
                 continue;
             }
-            if (mCurrentShader.first == SHADER_TYPE::Wireframe && scene->isShapeSelected(model, i)) {
+            if (mCurrentShader.first == SHADER_TYPE::Wireframe && model->isShapeSelected(i)) {
                 shapeIndex++;
                 continue;
             }   // Skip selected shapes in wireframe mode, avoid overlapping of wireframe and outline
-            shader->setMat4("model", scene->getModelMatrix(model, i));
+            shader->setMat4("model", model->getModelMatrix(i));
             glBindVertexArray(mVAOs[shapeIndex]);
 
             shader->setBool("hasTexture", mTextures[shapeIndex]);
@@ -183,13 +183,13 @@ void OpenGLRender::render(const std::shared_ptr<Scene>& scene, const glm::mat4& 
 
     shapeIndex = 0;
     for (const auto& model : models) {
-        size_t shapeCount = scene->getShapeCount(model);
+        size_t shapeCount = model->getShapeCount();
         for (size_t i = 0; i < shapeCount; ++i) {
-            if (!scene->isShapeVisible(model, i) || !scene->isShapeSelected(model, i)) {
+            if (!model->isShapeVisible(i) || !model->isShapeSelected(i)) {
                 shapeIndex++;
                 continue;
             }
-            outlineShader->setMat4("model", scene->getModelMatrix(model, i));
+            outlineShader->setMat4("model", model->getModelMatrix(i));
             glBindVertexArray(mVAOs[shapeIndex]);
             glDrawArrays(GL_TRIANGLES, 0, mVertexCounts[shapeIndex]);
             glBindVertexArray(0);

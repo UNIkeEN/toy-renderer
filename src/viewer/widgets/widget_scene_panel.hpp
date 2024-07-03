@@ -36,14 +36,14 @@ public:
             ImGui::PushID(model.get());
             bool allShapesInvisible = true;
             bool modelSelected = false;
-            for (size_t j = 0; j < viewer.getScene()->getShapeCount(model); ++j) {
-                if (viewer.getScene()->isShapeVisible(model, j)) {
+            for (size_t i = 0; i < model->getShapeCount(); ++i) {
+                if (model->isShapeVisible(i)) {
                     allShapesInvisible = false;
                     break;
                 }
             }
-            for (size_t j = 0; j < viewer.getScene()->getShapeCount(model); ++j) {
-                if (viewer.getScene()->isShapeSelected(model, j)) {
+            for (size_t i = 0; i < model->getShapeCount(); ++i) {
+                if (model->isShapeSelected(i)) {
                     modelSelected = true;
                     break;
                 }
@@ -55,11 +55,11 @@ public:
                 ImGui::PushStyleColor(ImGuiCol_Header, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive)); 
             }
 
-            std::string id = "##Model Item" + model->name;
+            std::string id = "##Model Item" + model->getName();
             bool treeOpen = ImGui::TreeNodeEx(id.c_str(), ImGuiTreeNodeFlags_AllowOverlap | (modelSelected == true ? ImGuiTreeNodeFlags_Selected : 0));
 
             ImGui::SameLine();
-            ImGui::TextWrapped("%s", viewer.getScene()->getModelName(model).c_str());
+            ImGui::TextWrapped("%s", model->getName().c_str());
             if (ImGui::IsItemClicked()) {
                 viewer.getScene()->toggleSelectModel(model);
             }
@@ -75,13 +75,13 @@ public:
             ImGui::PopStyleColor(3);
 
             if (treeOpen) {
-                for (size_t j = 0; j < viewer.getScene()->getShapeCount(model); ++j) {
-                    ImGui::PushID(static_cast<int>(j));
-                    bool isVisible = viewer.getScene()->isShapeVisible(model, j);
+                for (size_t i = 0; i < model->getShapeCount(); ++i) {
+                    ImGui::PushID(static_cast<int>(i));
+                    bool isVisible = model->isShapeVisible(i);
                     if (!isVisible) {
                         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
                     }
-                    ImGui::TextWrapped("%s", viewer.getScene()->getShapeName(model, j).c_str());
+                    ImGui::TextWrapped("%s", model->getShapeName(i).c_str());
                     if (!isVisible) {
                         ImGui::PopStyleColor();
                     }
@@ -92,7 +92,7 @@ public:
 
                     ImGui::SameLine(ImGui::GetContentRegionAvail().x - 10);
                     if (ImGui::Checkbox("##visible", &isVisible)) {     // Can't make this checkbox between PushStyleColor() and PopStyleColor()!
-                        viewer.getScene()->setShapeVisible(model, j, isVisible);
+                        model->setShapeVisible(i, isVisible);
                         // viewer.getRender()->setup(viewer.getScene());
                     }
                     ImGui::PopID();

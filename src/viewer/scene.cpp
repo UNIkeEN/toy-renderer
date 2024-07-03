@@ -51,27 +51,27 @@ void Scene::removeModel(ModelPtr model) {
 size_t Scene::getTotalShapeCount() const {
     size_t count = 0;
     for (const auto& model : mModels) {
-        count += model->shapes.size();
+        count += model->getShapeCount();
     }
     return count;
 }
 
 void Scene::selectModel(ModelPtr model) {
-    for (auto & mModel : mModels) {
-        for (auto & shape : mModel->shapes) {
-            shape.selected = false;
+    for (auto & model : mModels) {
+        for (size_t i = 0; i < model->getShapeCount(); ++i) {
+           model->setShapeSelected(i, false); 
         }
     }
     if (model != nullptr)   
-    for (auto & shape : model->shapes) {
-        shape.selected = true;
+    for (size_t i = 0; i < model->getShapeCount(); ++i) {
+        model->setShapeSelected(i, true);
     }
 }
 
 void Scene::toggleSelectModel(ModelPtr model) {
     bool selected = false;
-    for (auto & shape : model->shapes) {
-        if (shape.selected) {
+    for (size_t i = 0; i < model->getShapeCount(); ++i) {
+        if (model->isShapeSelected(i)) {
             selected = true;
             break;
         }
@@ -80,17 +80,17 @@ void Scene::toggleSelectModel(ModelPtr model) {
     else selectModel(model);
 }
 
-void Scene::updateModelMatrix(ModelPtr model) {
+void Model::updateModelMatrix() {
 
-    glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), model->position);
-    glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(model->rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-    rotationMatrix = glm::rotate(rotationMatrix, glm::radians(model->rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-    rotationMatrix = glm::rotate(rotationMatrix, glm::radians(model->rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-    glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), model->scale);
+    glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), mPosition);
+    glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(mRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+    rotationMatrix = glm::rotate(rotationMatrix, glm::radians(mRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+    rotationMatrix = glm::rotate(rotationMatrix, glm::radians(mRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), mScale);
 
     glm::mat4 modelMatrix = translationMatrix * rotationMatrix * scaleMatrix;
 
-    for (auto& shape : model->shapes) {
+    for (auto& shape : mShapes) {
         shape.modelMatrix = modelMatrix;
     }
 }
@@ -118,7 +118,7 @@ std::shared_ptr<Model> Scene::loadOBJModel(const std::string& path) {
     }
 
     if (!shapes.empty()) {
-        model.name = std::filesystem::path(path).stem().string();
+        model.setName(std::filesystem::path(path).stem().string());
     } else {
         std::cerr << "No shapes found in model" << std::endl;
         throw std::runtime_error("No shapes found in model");
@@ -164,7 +164,7 @@ std::shared_ptr<Model> Scene::loadOBJModel(const std::string& path) {
             }
         }
 
-        model.shapes.push_back(_shape);
+        model.addShape(_shape);
     }
 
     return std::make_shared<Model>(model);
@@ -179,16 +179,18 @@ std::shared_ptr<Model> Scene::loadPLYModel(const std::string& path) {
     if (plyIn.hasElement("face") && plyIn.getElement("face").hasProperty("vertex_indices")) {
         fInd = plyIn.getFaceIndices<size_t>();
     }
-
+    
+    std::string name;
     if (!vPos.empty()) {
-        model.name = std::filesystem::path(path).stem().string();
+        name = std::filesystem::path(path).stem().string();
+        model.setName(name);
     } else {
         std::cerr << "No vertices found in model" << std::endl;
         throw std::runtime_error("No vertices found in model");
     }
 
     Shape _shape;    // One ply file only has one shape
-    _shape.name = model.name;
+    _shape.name = name;
 
     if (fInd.empty()) {
         // Only vertices, no faces, create small triangles to show in renderer
@@ -245,6 +247,6 @@ std::shared_ptr<Model> Scene::loadPLYModel(const std::string& path) {
         }
     }
 
-    model.shapes.push_back(_shape);
+    model.addShape(_shape);
     return std::make_shared<Model>(model);
 }
