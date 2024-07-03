@@ -175,7 +175,7 @@ void OpenGLRender::render(const std::shared_ptr<Scene>& scene, const glm::mat4& 
     outlineShader->setMat4("view", viewMatrix);
     outlineShader->setMat4("projection", projectionMatrix);
     if (mCurrentShader.first == SHADER_TYPE::Wireframe) outlineShader->setFloat("offset", 0.0f);
-    else outlineShader->setFloat("offset", 0.0f);
+    else outlineShader->setFloat("offset", 0.0f);   // TODO: Offset can be set by user.
     
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glLineWidth(1.6f);
