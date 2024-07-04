@@ -4,6 +4,13 @@
 #include <glad/glad.h>
 #include "render.h"
 
+struct OpenGLModelResources {
+    std::vector<GLuint> VAOs;
+    std::vector<GLuint> VBOs;
+    std::vector<GLuint> textures;
+    std::vector<size_t> vertexCounts;
+};
+
 class OpenGLRender : public Render {
 public:
     OpenGLRender() = default;
@@ -11,6 +18,8 @@ public:
 
     void init() override;
     void setup(const std::shared_ptr<Scene>& scene) override;
+    void setupModel(const ModelPtr& model) override;
+    void cleanModel(const ModelPtr& model) override;
     void render(
         const std::shared_ptr<Scene>& scene, 
         const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix
@@ -26,10 +35,5 @@ public:
 private:
     static void loadTexture(const std::string& path, GLuint& textureID);
 
-    // std::unique_ptr<ShaderProgram> mShader;
-    std::vector<GLuint> mVAOs;
-    std::vector<GLuint> mVBOs;
-    std::vector<GLuint> mEBOs;
-    std::vector<GLuint> mTextures;
-    std::vector<size_t> mVertexCounts; // Number of vertices for each shape, used in glDrawArrays
+    std::unordered_map<ModelPtr, OpenGLModelResources> mModelResources;
 };

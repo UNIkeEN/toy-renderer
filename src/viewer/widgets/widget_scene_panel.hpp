@@ -32,7 +32,7 @@ public:
         // }
         // It make bugs
         
-        for (auto model : viewer.getScene()->getModels()) {
+        for (const auto& model : viewer.getScene()->getModels()) {
             ImGui::PushID(model.get());
             bool allShapesInvisible = true;
             bool modelSelected = false;
@@ -69,8 +69,10 @@ public:
             ImGui::SameLine(ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize("Remove").x + (treeOpen ? 15.0f : -5.0f));
             PushStyleRedButton();
             if (ImGui::Button("Remove")) {
+                // viewer.getScene()->removeModel(model);
+                // viewer.getRender()->setup(viewer.getScene());
+                viewer.getRender()->cleanModel(model);
                 viewer.getScene()->removeModel(model);
-                viewer.getRender()->setup(viewer.getScene());
             }
             ImGui::PopStyleColor(3);
 
@@ -125,8 +127,11 @@ private:
         args.filterCount = filters.size();
         nfdresult_t result = NFD_OpenDialogU8_With(&outPath, &args);
         if (result == NFD_OKAY) {
-            viewer.getScene()->addModel(outPath);
-            viewer.getRender()->setup(viewer.getScene());
+            // viewer.getScene()->addModel(outPath);
+            // viewer.getRender()->setup(viewer.getScene());
+            viewer.getRender()->setupModel(
+                viewer.getScene()->addModel(outPath)
+            );
             NFD_FreePathU8(outPath);
         }
         else if (result == NFD_CANCEL) {
