@@ -102,6 +102,7 @@ void Viewer::mainLoop() {
         mLastFrame = currentFrame;
 
         glfwPollEvents();
+        processGamepadInput();
 
         if (mRender->getType() == RENDERER_TYPE::OpenGL) {
             ImGui_ImplOpenGL3_NewFrame();
@@ -278,6 +279,30 @@ void Viewer::framebufferSizeCallback(GLFWwindow* window, int width, int height) 
     mHeight = height;
     mWidth = width;
     mCamera->setAspectRatio(static_cast<float>(width) / static_cast<float>(height));
+}
+
+void Viewer::processGamepadInput() {
+    if (!glfwJoystickIsGamepad(GLFW_JOYSTICK_1)) return;
+
+    GLFWgamepadstate state;
+    if (glfwGetGamepadState(GLFW_JOYSTICK_1, &state)) {
+        // Left thumbstick for camera movement
+        glm::vec3 movement(0.0f), direction(mCamera->getDirection());
+        if (fabs(state.axes[GLFW_GAMEPAD_AXIS_LEFT_Y]) > 0.1f) {  // By GPT, design for drift??
+            movement -= direction * state.axes[GLFW_GAMEPAD_AXIS_LEFT_Y];
+        }
+        if (fabs(state.axes[GLFW_GAMEPAD_AXIS_LEFT_X]) > 0.1f) {
+            movement += glm::normalize(glm::cross(direction, mCamera->getUp())) * state.axes[GLFW_GAMEPAD_AXIS_LEFT_X];
+        }
+        if (glm::length(movement) > 0.0f) {
+            mCamera->move(movement, static_cast<float>(mMovementSpeed * std::max(mDeltaTime, 1.0 / 60.0f)));
+        }
+
+        // Right thumbstick for camera rotation, using 3x mouse sensitivity
+        if (fabs(state.axes[GLFW_GAMEPAD_AXIS_RIGHT_X]) > 0.1f || fabs(state.axes[GLFW_GAMEPAD_AXIS_RIGHT_Y]) > 0.1f) {
+            mCamera->rotate(state.axes[GLFW_GAMEPAD_AXIS_RIGHT_X] * mMouseSensitivity * 3, -state.axes[GLFW_GAMEPAD_AXIS_RIGHT_Y] * mMouseSensitivity * 3);
+        }
+    }
 }
 
 void Viewer::saveScreenshot() {

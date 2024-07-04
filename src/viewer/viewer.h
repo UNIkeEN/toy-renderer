@@ -50,12 +50,15 @@ protected:
     float mMovementSpeed;   // Camera movement speed of keyboard input
     float mMouseSensitivity;
 
+    // User input handling functions and callbacks
     void keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
     void mouseCallback(GLFWwindow* window, double xpos, double ypos);
     void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
     void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
-    void framebufferSizeCallback(GLFWwindow* window, int width, int height);
-
+    void framebufferSizeCallback(GLFWwindow* window, int width, int height);    // Callback when user resize the window
+    void processGamepadInput();
+    
+    // Utility functions
     void saveScreenshot();
 
     std::vector<std::shared_ptr<Widget>> mWidgets;  // ImGUI widgets
