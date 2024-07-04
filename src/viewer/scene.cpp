@@ -60,25 +60,14 @@ size_t Scene::getTotalShapeCount() const {
 
 void Scene::selectModel(const ModelPtr& model) {
     for (auto & _model : mModels) {
-        for (size_t i = 0; i < _model->getShapeCount(); ++i) {
-           _model->setShapeSelected(i, false);
-        }
+        _model->setSelected(false);
     }
     if (model != nullptr)   
-    for (size_t i = 0; i < model->getShapeCount(); ++i) {
-        model->setShapeSelected(i, true);
-    }
+    model->setSelected(true);
 }
 
 void Scene::toggleSelectModel(const ModelPtr& model) {
-    bool selected = false;
-    for (size_t i = 0; i < model->getShapeCount(); ++i) {
-        if (model->isShapeSelected(i)) {
-            selected = true;
-            break;
-        }
-    }
-    if (selected) selectModel(nullptr);
+    if (model->isSelected()) selectModel(nullptr);
     else selectModel(model);
 }
 
@@ -90,11 +79,7 @@ void Model::updateModelMatrix() {
     rotationMatrix = glm::rotate(rotationMatrix, glm::radians(mRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
     glm::mat4 scaleMatrix = glm::scale(glm::mat4(1.0f), mScale);
 
-    glm::mat4 modelMatrix = translationMatrix * rotationMatrix * scaleMatrix;
-
-    for (auto& shape : mShapes) {
-        shape.modelMatrix = modelMatrix;
-    }
+    mModelMatrix = translationMatrix * rotationMatrix * scaleMatrix;
 }
 
 glm::vec3 Scene::calcVertNormal(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2) {

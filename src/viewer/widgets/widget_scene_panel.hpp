@@ -42,12 +42,7 @@ public:
                     break;
                 }
             }
-            for (size_t i = 0; i < model->getShapeCount(); ++i) {
-                if (model->isShapeSelected(i)) {
-                    modelSelected = true;
-                    break;
-                }
-            }
+            modelSelected = model->isSelected();
 
             if (allShapesInvisible) {
                 ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));

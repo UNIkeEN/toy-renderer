@@ -12,11 +12,9 @@ public:
 
         ModelPtr selectModel = nullptr;
         for (const auto &model : viewer.getScene()->getModels()){
-            for (size_t i = 0; i < model->getShapeCount(); ++i){
-                if (model->isShapeSelected(i)){
-                    selectModel = model;
-                    break;
-                }
+            if (model->isSelected()){
+                selectModel = model;
+                break;
             }
         }
         if (selectModel == nullptr) return; // No model selected

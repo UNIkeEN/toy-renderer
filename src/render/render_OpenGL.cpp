@@ -153,18 +153,15 @@ void OpenGLRender::render(const std::shared_ptr<Scene>& scene, const glm::mat4& 
 
     auto models = scene->getModels();
     for (const auto& model : models) {
-        size_t shapeCount = model->getShapeCount();
+        // Skip selected shapes in wireframe mode, avoid overlapping of wireframe and outline
+        if (mCurrentShader.first == SHADER_TYPE::Wireframe && model->isSelected()) continue;
+        shader->setMat4("model", model->getModelMatrix());
         const OpenGLModelResources& resources = mModelResources.at(model);
+        size_t shapeCount = model->getShapeCount();
         for (size_t i = 0; i < shapeCount; ++i) {
-            if (!model->isShapeVisible(i)) {
-                continue;
-            }
-            if (mCurrentShader.first == SHADER_TYPE::Wireframe && model->isShapeSelected(i)) {
-                continue;
-            }   // Skip selected shapes in wireframe mode, avoid overlapping of wireframe and outline
-            shader->setMat4("model", model->getModelMatrix(i));
+            if (!model->isShapeVisible(i)) continue;
+    
             glBindVertexArray(resources.VAOs[i]);
-
             shader->setBool("hasTexture", resources.textures[i] != 0);
             if (resources.textures[i]) {
                 // Use GL_TETURE0 all the time
@@ -190,13 +187,14 @@ void OpenGLRender::render(const std::shared_ptr<Scene>& scene, const glm::mat4& 
     glLineWidth(1.6f);
 
     for (const auto& model : models) {
-        size_t shapeCount = model->getShapeCount();
+        if (!model->isSelected()) continue;
+        outlineShader->setMat4("model", model->getModelMatrix());
         const OpenGLModelResources& resources = mModelResources.at(model);
+        size_t shapeCount = model->getShapeCount();
         for (size_t i = 0; i < shapeCount; ++i) {
-            if (!model->isShapeVisible(i) || !model->isShapeSelected(i)) {
+            if (!model->isShapeVisible(i)) {
                 continue;
             }
-            outlineShader->setMat4("model", model->getModelMatrix(i));
             glBindVertexArray(resources.VAOs[i]);
             glDrawArrays(GL_TRIANGLES, 0, resources.vertexCounts[i]);
             glBindVertexArray(0);
@@ -221,13 +219,13 @@ void OpenGLRender::renderIdx(const std::shared_ptr<Scene>& scene, const glm::mat
         const auto& model = models[modelIndex];
         idxShader->setInt("modelIdx", modelIndex + 1);
         // +1, because index 0->(0,0,0,1) is reserved for background (glClearColor)
-        size_t shapeCount = model->getShapeCount();
+        idxShader->setMat4("model", model->getModelMatrix());
         const OpenGLModelResources& resources = mModelResources.at(model);
+        size_t shapeCount = model->getShapeCount();
         for (size_t i = 0; i < shapeCount; ++i) {
             if (!model->isShapeVisible(i)) {
                 continue;
             }
-            idxShader->setMat4("model", model->getModelMatrix(i));
             glBindVertexArray(resources.VAOs[i]);
             glDrawArrays(GL_TRIANGLES, 0, resources.vertexCounts[i]);
             glBindVertexArray(0);

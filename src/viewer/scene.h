@@ -14,8 +14,6 @@ struct Shape {
     std::string texturePath;
     std::string name;
     bool visible = true;
-    bool selected = false;                      // All shapes in a model share the same selected flag, just store here convenience for renderer VAOs loop
-    glm::mat4 modelMatrix = glm::mat4(1.0f);    // All shapes in a model share the same model matrix, ...
 };
 
 class Model {
@@ -32,18 +30,19 @@ public:
     [[nodiscard]] const std::vector<glm::vec2>& getTexCoords(size_t shapeIndex) const { return mShapes[shapeIndex].texCoords; };
     [[nodiscard]] const std::string& getTexturePath(size_t shapeIndex) const { return mShapes[shapeIndex].texturePath; };
     [[nodiscard]] const std::string& getShapeName(size_t shapeIndex) const { return mShapes[shapeIndex].name; };
-    [[nodiscard]] const glm::mat4& getModelMatrix(size_t shapeIndex) const { return mShapes[shapeIndex].modelMatrix; };
     [[nodiscard]] const bool& isShapeVisible(size_t shapeIndex) const { return mShapes[shapeIndex].visible; };
     void setShapeVisible(size_t shapeIndex, bool visible) { mShapes[shapeIndex].visible = visible; };
-    [[nodiscard]] const bool& isShapeSelected(size_t shapeIndex) const { return mShapes[shapeIndex].selected; };
-    void setShapeSelected(size_t shapeIndex, bool selected) { mShapes[shapeIndex].selected = selected; };
+    
 
     // Model level operations
     [[nodiscard]] const std::string& getName() const { return mName; };
     void setName(const std::string& name) { mName = name; };
+    [[nodiscard]] const bool& isSelected() const { return mSelected; };
+    void setSelected(bool selected) { mSelected = selected; };
     [[nodiscard]] size_t getShapeCount() const { return mShapes.size(); };
 
-    void updateModelMatrix(); // Update model matrix for all shapes in the model
+    [[nodiscard]] const glm::mat4& getModelMatrix() const { return mModelMatrix; };
+    void updateModelMatrix();
     [[nodiscard]] const glm::vec3& getPosition() const { return mPosition; };
     void setPosition(const glm::vec3& position) { mPosition = position; updateModelMatrix(); };
     [[nodiscard]] const glm::vec3& getRotation() const { return mRotation; };
@@ -54,9 +53,11 @@ public:
 private:
     std::vector<Shape> mShapes;
     std::string mName;
+    bool mSelected = false;
     glm::vec3 mPosition = glm::vec3(0.0f);
     glm::vec3 mRotation = glm::vec3(0.0f);       // Euler angles, in degrees
     glm::vec3 mScale = glm::vec3(1.0f);
+    glm::mat4 mModelMatrix = glm::mat4(1.0f);
 };
 
 using ModelPtr = std::shared_ptr<Model>;
