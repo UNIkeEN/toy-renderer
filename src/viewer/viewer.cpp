@@ -185,6 +185,14 @@ void Viewer::keyboardCallback(GLFWwindow* window, int key, int scancode, int act
         if (key == GLFW_KEY_ESCAPE)
             glfwSetWindowShouldClose(window, GLFW_TRUE);
         else if (key == GLFW_KEY_F12) saveScreenshot();
+        else if (key == GLFW_KEY_DELETE) {
+            for (auto& model : mScene->getModels()) {
+                if (model->isSelected()) {
+                    mRender->cleanModel(model);
+                    mScene->removeModel(model);
+                }
+            }
+        }
         else {
             glm::vec3 movement(0.0f), direction(mCamera->getDirection());
             if (glfwGetKey(mWindow, GLFW_KEY_W) == GLFW_PRESS)
