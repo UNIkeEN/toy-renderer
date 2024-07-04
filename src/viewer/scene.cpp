@@ -24,7 +24,7 @@ const std::unordered_map<std::string, Scene::LoadModelFunc> Scene::loadModelFunc
     {".ply", loadPLYModel}
 };
 
-void Scene::addModel(const std::string& path) {
+ModelPtr Scene::addModel(const std::string& path) {
     std::filesystem::path filePath(path);
     std::string ext = filePath.extension().string();
 
@@ -33,15 +33,17 @@ void Scene::addModel(const std::string& path) {
     auto it = loadModelFunctions.find(ext);
     if (it != loadModelFunctions.end()) {
         // Use the function pointer to load model
-        auto model = std::move(it->second(path));
+        ModelPtr model = std::make_shared<Model>();
+        it->second(path, model);
         mModels.push_back(model);
         selectModel(model);
+        return model;
     } else {
         throw std::runtime_error("Unsupported file format");
     }
 }
 
-void Scene::removeModel(ModelPtr model) {
+void Scene::removeModel(const ModelPtr& model) {
     auto it = std::find(mModels.begin(), mModels.end(), model);
     if (it != mModels.end()) {
         mModels.erase(it);
@@ -56,10 +58,10 @@ size_t Scene::getTotalShapeCount() const {
     return count;
 }
 
-void Scene::selectModel(ModelPtr model) {
-    for (auto & model : mModels) {
-        for (size_t i = 0; i < model->getShapeCount(); ++i) {
-           model->setShapeSelected(i, false); 
+void Scene::selectModel(const ModelPtr& model) {
+    for (auto & _model : mModels) {
+        for (size_t i = 0; i < _model->getShapeCount(); ++i) {
+           _model->setShapeSelected(i, false);
         }
     }
     if (model != nullptr)   
@@ -68,7 +70,7 @@ void Scene::selectModel(ModelPtr model) {
     }
 }
 
-void Scene::toggleSelectModel(ModelPtr model) {
+void Scene::toggleSelectModel(const ModelPtr& model) {
     bool selected = false;
     for (size_t i = 0; i < model->getShapeCount(); ++i) {
         if (model->isShapeSelected(i)) {
@@ -102,8 +104,7 @@ glm::vec3 Scene::calcVertNormal(const glm::vec3& v0, const glm::vec3& v1, const 
 }
 
 
-std::shared_ptr<Model> Scene::loadOBJModel(const std::string& path) {
-    Model model;
+void Scene::loadOBJModel(const std::string& path, const ModelPtr& model) {
 
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
@@ -118,7 +119,7 @@ std::shared_ptr<Model> Scene::loadOBJModel(const std::string& path) {
     }
 
     if (!shapes.empty()) {
-        model.setName(std::filesystem::path(path).stem().string());
+        model->setName(std::filesystem::path(path).stem().string());
     } else {
         std::cerr << "No shapes found in model" << std::endl;
         throw std::runtime_error("No shapes found in model");
@@ -164,16 +165,13 @@ std::shared_ptr<Model> Scene::loadOBJModel(const std::string& path) {
             }
         }
 
-        model.addShape(_shape);
+        model->addShape(_shape);
     }
-
-    return std::make_shared<Model>(model);
 }
 
-std::shared_ptr<Model> Scene::loadPLYModel(const std::string& path) {
-    Model model;
+void Scene::loadPLYModel(const std::string& path, const ModelPtr& model) {
+    
     happly::PLYData plyIn(path);
-
     std::vector<std::array<double, 3>> vPos = plyIn.getVertexPositions();
     std::vector<std::vector<size_t>> fInd;
     if (plyIn.hasElement("face") && plyIn.getElement("face").hasProperty("vertex_indices")) {
@@ -183,7 +181,7 @@ std::shared_ptr<Model> Scene::loadPLYModel(const std::string& path) {
     std::string name;
     if (!vPos.empty()) {
         name = std::filesystem::path(path).stem().string();
-        model.setName(name);
+        model->setName(name);
     } else {
         std::cerr << "No vertices found in model" << std::endl;
         throw std::runtime_error("No vertices found in model");
@@ -292,6 +290,5 @@ std::shared_ptr<Model> Scene::loadPLYModel(const std::string& path) {
         // }
     }
 
-    model.addShape(_shape);
-    return std::make_shared<Model>(model);
+    model->addShape(_shape);
 }

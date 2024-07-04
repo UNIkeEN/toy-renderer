@@ -25,7 +25,7 @@ public:
 
     // Shape level operations
     void addShape(const Shape& shape) { mShapes.push_back(shape); };
-    void removeShape(size_t shapeIndex) { mShapes.erase(mShapes.begin() + shapeIndex); };
+    void removeShape(size_t shapeIndex) { mShapes.erase(mShapes.begin() + static_cast<long long>(shapeIndex)); };
 
     [[nodiscard]] const std::vector<glm::vec3>& getVertices(size_t shapeIndex) const { return mShapes[shapeIndex].vertices; };
     [[nodiscard]] const std::vector<glm::vec3>& getNormals(size_t shapeIndex) const { return mShapes[shapeIndex].normals; };
@@ -66,11 +66,11 @@ public:
     Scene() = default;
     ~Scene();
 
-    [[nodiscard]] const std::vector<ModelPtr> getModels() const { return mModels; };
-    void addModel(const std::string& path);
-    void removeModel(ModelPtr model);
-    void selectModel(ModelPtr model);
-    void toggleSelectModel(ModelPtr model);
+    [[nodiscard]] std::vector<ModelPtr> getModels() const { return mModels; };
+    ModelPtr addModel(const std::string& path);
+    void removeModel(const ModelPtr& model);
+    void selectModel(const ModelPtr& model);
+    void toggleSelectModel(const ModelPtr& model);
     [[nodiscard]] size_t getModelCount() const { return mModels.size(); };
     [[nodiscard]] size_t getTotalShapeCount() const;
 
@@ -81,11 +81,11 @@ public:
 private:
     std::vector<ModelPtr> mModels;
 
-    using LoadModelFunc = std::function<ModelPtr(const std::string&)>;
+    using LoadModelFunc = std::function<void(const std::string&, ModelPtr)>;
     static const std::unordered_map<std::string, Scene::LoadModelFunc> loadModelFunctions;
 
-    static ModelPtr loadOBJModel(const std::string& path);
-    static ModelPtr loadPLYModel(const std::string& path);
+    static void loadOBJModel(const std::string& path, const ModelPtr& model);
+    static void loadPLYModel(const std::string& path, const ModelPtr& model);
 
     static glm::vec3 calcVertNormal(const glm::vec3& v0, const glm::vec3& v1, const glm::vec3& v2);    // Calculate normals if not provided in the model file
 
