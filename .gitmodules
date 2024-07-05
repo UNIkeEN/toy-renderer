@@ -10,3 +10,6 @@
 [submodule "deps/nfd"]
 	path = deps/nfd
 	url = https://github.com/btzy/nativefiledialog-extended.git
+[submodule "deps/glslang"]
+	path = deps/glslang
+	url = https://github.com/KhronosGroup/glslang.git

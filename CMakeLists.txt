@@ -20,6 +20,17 @@ target_include_directories(imgui PUBLIC
 )
 include_directories(${PROJECT_SOURCE_DIR}/deps)
 
+# load glslang
+include_directories(${PROJECT_SOURCE_DIR}/deps/glslang)
+# include_directories(${PROJECT_SOURCE_DIR}/deps/glslang/SPIRV)
+set(SKIP_GLSLANG_INSTALL ON)
+set(ENABLE_CTEST OFF)
+set(ENABLE_PCH OFF)
+set(ENABLE_OPT OFF)
+set(BUILD_TESTING OFF)
+set(USE_CCACHE ON)
+add_subdirectory(${PROJECT_SOURCE_DIR}/deps/glslang)
+
 # load vulkan
 find_package(Vulkan REQUIRED)
 
@@ -27,4 +38,4 @@ find_package(Vulkan REQUIRED)
 add_executable(${PROJECT_NAME})
 add_subdirectory(${PROJECT_SOURCE_DIR}/src)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE glad glfw glm imgui nfd Vulkan::Vulkan)
+target_link_libraries(${PROJECT_NAME} PRIVATE glad glfw glm imgui nfd Vulkan::Vulkan glslang glslang-default-resource-limits SPIRV)
