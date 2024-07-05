@@ -1,5 +1,9 @@
+# Build Directories
 build/
 cmake-build-debug/
+cmake-build-release/
+
+# Assets
 assets/models/
 
 # IDE configs
