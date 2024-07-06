@@ -46,16 +46,31 @@ void VulkanRender::init() {
 
 void VulkanRender::cleanup() {
     cleanupSwapChain();
+    resetModelResources();
 
+    for (auto& shader : mShaders) {
+        shader.second->cleanup();
+    }
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         vkDestroySemaphore(mDevice, mRenderFinishedSemaphores[i], nullptr);
         vkDestroySemaphore(mDevice, mImageAvailableSemaphores[i], nullptr);
         vkDestroyFence(mDevice, mInFlightFences[i], nullptr);
     }
-
     vkDestroyCommandPool(mDevice, mCommandPool, nullptr);
-
     vkDestroyDescriptorSetLayout(mDevice, mDescriptorSetLayout, nullptr);
+    vkDestroyDescriptorPool(mDevice, mDescriptorPool, nullptr);
+    vkDestroyDescriptorPool(mDevice, mImGuiDescriptorPool, nullptr);
+    vkDestroyRenderPass(mDevice, mRenderPass, nullptr);
+
+    if (mSurface != VK_NULL_HANDLE) {
+        vkDestroySurfaceKHR(mInstance, mSurface, nullptr);
+    }
+    if (mDevice != VK_NULL_HANDLE) {
+        vkDestroyDevice(mDevice, nullptr);
+    }
+    if (mInstance != VK_NULL_HANDLE) {
+        vkDestroyInstance(mInstance, nullptr);
+    }
 }
 
 void VulkanRender::setup(const std::shared_ptr<Scene>& scene) {
@@ -942,23 +957,21 @@ void VulkanRender::cleanupSwapChain() {
     mSwapChainFramebuffers.clear();
 
     vkFreeCommandBuffers(mDevice, mCommandPool, static_cast<uint32_t>(mCommandBuffers.size()), mCommandBuffers.data());
-
-    // Pipeline and pipeline layout will be destroyed by ~ShaderProgram() -> ShaderProgram()::cleanup()
-
-    vkDestroyRenderPass(mDevice, mRenderPass, nullptr);
+    mCommandBuffers.clear();
 
     for (auto imageView : mSwapChainImageViews) {
         vkDestroyImageView(mDevice, imageView, nullptr);
     }
+    mSwapChainImageViews.clear();
 
     vkDestroySwapchainKHR(mDevice, mSwapChain, nullptr);
 
-    for (size_t i = 0; i < mSwapChainImages.size(); i++) {
+    for (size_t i = 0; i < mUniformBuffers.size(); i++) {
         vkDestroyBuffer(mDevice, mUniformBuffers[i], nullptr);
         vkFreeMemory(mDevice, mUniformBuffersMemory[i], nullptr);
     }
-
-    vkDestroyDescriptorPool(mDevice, mDescriptorPool, nullptr);
+    mUniformBuffers.clear();
+    mUniformBuffersMemory.clear();
 }
 
 void VulkanRender::recreateSwapChain() {

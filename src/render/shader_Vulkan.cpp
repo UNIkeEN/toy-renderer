@@ -18,11 +18,11 @@ void ShaderProgram::useForVulkan() {
 }
 
 void ShaderProgram::cleanupForVulkan() {
-    if (mPipeline != VK_NULL_HANDLE) {
+    if (mPipeline != VK_NULL_HANDLE && mDevice != VK_NULL_HANDLE) {
         vkDestroyPipeline(mDevice, mPipeline, nullptr);
         mPipeline = VK_NULL_HANDLE;
     }
-    if (mPipelineLayout != VK_NULL_HANDLE) {
+    if (mPipelineLayout != VK_NULL_HANDLE && mDevice != VK_NULL_HANDLE) {
         vkDestroyPipelineLayout(mDevice, mPipelineLayout, nullptr);
         mPipelineLayout = VK_NULL_HANDLE;
     }
