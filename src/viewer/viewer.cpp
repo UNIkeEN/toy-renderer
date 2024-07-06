@@ -15,10 +15,14 @@
 #include "widgets/widget_notification.hpp"
 
 Viewer::Viewer(int width, int height, std::shared_ptr<Camera> camera, std::shared_ptr<Scene> scene)
-    : mWidth(width), mHeight(height), mWindow(nullptr), mCamera(std::move(camera)), mScene(std::move(scene)), mRender(std::make_shared<Render>()),
+    : mWidth(width), mHeight(height), mWindow(nullptr), mCamera(std::move(camera)), mScene(std::move(scene)), mRender(nullptr),
       mFirstMouse(true), mPressedMouseButton(-1), mLastX(static_cast<float>(width) / 2.0f), mLastY(static_cast<float>(height) / 2.0f), mDeltaTime(0.0f), mLastFrame(0.0f),
       mMovementSpeed(20.0f), mMouseSensitivity(0.15f), 
-      mWidgets(createAllWidgets()) {}
+      mWidgets(createAllWidgets()) {
+
+        // Default use OpenGL backend
+        switchBackend(RENDERER_TYPE::OpenGL);
+    }
 
 Viewer::~Viewer() {
     cleanup();
@@ -207,7 +211,7 @@ void Viewer::cleanup() {
 }
 
 void Viewer::switchBackend(RENDERER_TYPE type) {
-    if (mRender->getType() == type) return;
+    if (mRender != nullptr && mRender->getType() == type) return;
 
     bool winsowStateSaved = false;
     int windowPosX, windowPosY, windowWidth, windowHeight;
