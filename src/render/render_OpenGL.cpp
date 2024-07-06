@@ -43,6 +43,9 @@ void OpenGLRender::init() {
         findFile("assets/shaders/glsl/model-index.vert"),
         findFile("assets/shaders/glsl/model-index.frag")
     );
+    for (auto& shader : mShaders) {
+        shader.second->init(RENDERER_TYPE::OpenGL);
+    }
     
     setCurrentShader(SHADER_TYPE::MaterialPreview);
 
