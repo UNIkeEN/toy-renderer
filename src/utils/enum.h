@@ -2,7 +2,8 @@
 
 enum class RENDERER_TYPE {
     OpenGL,
-    Vulkan
+    Vulkan,
+    None
 };
 
 enum class CAMERA_TYPE {
