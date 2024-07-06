@@ -3,7 +3,7 @@
 #include <memory>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-// #include <imgui_impl_vulkan.h>
+#include <stdexcept>
 #include "camera.h"
 #include "scene.h"
 #include "render/render.h"
@@ -11,13 +11,26 @@
 
 class Viewer {
 public:
-    Viewer(int width, int height, std::shared_ptr<Render> render, std::shared_ptr<Camera> camera, std::shared_ptr<Scene> scene);
+    Viewer(int width, int height, std::shared_ptr<Camera> camera, std::shared_ptr<Scene> scene);
     virtual ~Viewer();
 
-    void init();
+    void init() { throw std::runtime_error("API deprecated"); } // Deprecated, use initWindow() and initBackend() instead
+    void initWindow();
+    void initBackend(); 
+    // Need to call by this order: 
+    // 1. create and set viewer->mRender,
+    // 2. viewer->initWindow(), init GLFW, create window and set opengl context, specially pass mWindow to mRender (if use vulkan)
+    // 3. render->init(), init render itself
+    // 4. viewer->initBackend(), init ImGUI implementation for different render backend
+    // 5. further steps, such as setup scene, etc.
+
     void mainLoop();
     void cleanup();
 
+    void switchBackend(RENDERER_TYPE type);
+    // cleanup and reinit, auto do the steps above.
+
+    [[nodiscard]] GLFWwindow* getWindow() const { return mWindow; }
     [[nodiscard]] std::shared_ptr<Render> getRender() const { return mRender; }
     [[nodiscard]] std::shared_ptr<Camera> getCamera() const { return mCamera; }
     void setCamera(const std::shared_ptr<Camera>& camera) { mCamera = camera; mCamera->update(); }

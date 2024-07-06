@@ -1,6 +1,7 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+#include <imgui_impl_vulkan.h>
 #include <iostream>
 #include <sstream>
 #include <chrono>
@@ -8,11 +9,13 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 #include "viewer/viewer.h"
+#include "render/render_OpenGL.h"
+#include "render/render_Vulkan.h"
 #include "utils/file.h"
 #include "widgets/widget_notification.hpp"
 
-Viewer::Viewer(int width, int height, std::shared_ptr<Render> render, std::shared_ptr<Camera> camera, std::shared_ptr<Scene> scene)
-    : mWidth(width), mHeight(height), mWindow(nullptr), mRender(std::move(render)), mCamera(std::move(camera)), mScene(std::move(scene)),
+Viewer::Viewer(int width, int height, std::shared_ptr<Camera> camera, std::shared_ptr<Scene> scene)
+    : mWidth(width), mHeight(height), mWindow(nullptr), mCamera(std::move(camera)), mScene(std::move(scene)), mRender(std::make_shared<Render>()),
       mFirstMouse(true), mPressedMouseButton(-1), mLastX(static_cast<float>(width) / 2.0f), mLastY(static_cast<float>(height) / 2.0f), mDeltaTime(0.0f), mLastFrame(0.0f),
       mMovementSpeed(20.0f), mMouseSensitivity(0.15f), 
       mWidgets(createAllWidgets()) {}
@@ -21,15 +24,20 @@ Viewer::~Viewer() {
     cleanup();
 }
 
-void Viewer::init() {
-    // Initialize GLFW
+void Viewer::initWindow() {
     if (!glfwInit()) {
         std::cerr << "Failed to initialize GLFW" << std::endl;
         return;
     }
 
     // Create GLFW window
-    // glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE); // Maximize
+    if (mRender->getType() == RENDERER_TYPE::Vulkan) {
+        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);  // Disable OpenGL context for Vulkan
+    } else if (mRender->getType() == RENDERER_TYPE::OpenGL) {
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    }
     mWindow = glfwCreateWindow(mWidth, mHeight, "Toy Renderer", nullptr, nullptr);
     if (!mWindow) {
         std::cerr << "Failed to create GLFW window" << std::endl;
@@ -37,8 +45,7 @@ void Viewer::init() {
         return;
     }
 
-    glfwMakeContextCurrent(mWindow);
-    glfwSetWindowUserPointer(mWindow, this);    // For callback functions below to get (Guided by GPT)
+    glfwSetWindowUserPointer(mWindow, this);
 
     // Callback functions to process user's input
     glfwSetKeyCallback(mWindow, [](GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -64,6 +71,16 @@ void Viewer::init() {
     // Catch cursor
     // glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
+    // Set OpenGL context
+    if (mRender->getType() == RENDERER_TYPE::OpenGL) {
+        glfwMakeContextCurrent(mWindow); 
+    } else if (mRender->getType() == RENDERER_TYPE::Vulkan) {
+        std::dynamic_pointer_cast<VulkanRender>(mRender)->setWindow(mWindow);
+        glfwMakeContextCurrent(nullptr); 
+    }
+}
+
+void Viewer::initBackend() {
     // Initialize ImGui context, custom style, and GLFW/OpenGL/Vulkan bindings
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -72,7 +89,7 @@ void Viewer::init() {
     // Font
     io.Fonts->AddFontFromFileTTF(findFile("assets/fonts/NotoSansMono-Regular.ttf").c_str(), 18.0f);
     // DPI Scaling by monitor resolution
-    GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();  
+    GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
     const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
     io.FontGlobalScale = 1.25f;
     if (mode->width >= 2560 && mode->height >= 1440) { // >=2K
@@ -88,12 +105,15 @@ void Viewer::init() {
         ImGui_ImplOpenGL3_Init("#version 450");
     } else if (mRender->getType() == RENDERER_TYPE::Vulkan) {
         ImGui_ImplGlfw_InitForVulkan(mWindow, true);
-        // TODO
+        ImGui_ImplVulkan_Init(
+            std::dynamic_pointer_cast<VulkanRender>(mRender)->getImGuiInitInfo()
+        );
     }
 
     // Disable V-Sync
     // glfwSwapInterval(0);
 }
+
 
 void Viewer::mainLoop() {
     while (!glfwWindowShouldClose(mWindow)) {
@@ -104,17 +124,21 @@ void Viewer::mainLoop() {
         glfwPollEvents();
         processGamepadInput();
 
-        if (mRender->getType() == RENDERER_TYPE::OpenGL) {
+        RENDERER_TYPE backendType = mRender->getType();
+        if (backendType == RENDERER_TYPE::OpenGL) {
             ImGui_ImplOpenGL3_NewFrame();
-        } else if (mRender->getType() == RENDERER_TYPE::Vulkan) {
-            // ImGui_ImplVulkan_NewFrame();
+        } else if (backendType == RENDERER_TYPE::Vulkan) {
+            ImGui_ImplVulkan_NewFrame();
         }
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
         // Render UI
-        renderWidgets();
         renderMainMenu();
+        renderWidgets();
+        if (mRender->getType() == backendType) {
+            ImGui::Render();     // only call if backend isn't switched
+        }
         
         // Render scene
         if (mRender) {
@@ -126,11 +150,15 @@ void Viewer::mainLoop() {
         }
 
         // Render ImGui
-        ImGui::Render();
         if (mRender->getType() == RENDERER_TYPE::OpenGL) {
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         } else if (mRender->getType() == RENDERER_TYPE::Vulkan) {
-            // ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData());
+            // ImGui_ImplVulkan_RenderDrawData(
+            //     ImGui::GetDrawData(),
+            //     std::dynamic_pointer_cast<VulkanRender>(mRender)->getCurrentCommandBuffer()
+            // );
+
+            // Already call ImGui_ImplVulkan_RenderDrawData in VulkanRender.render()
         }
 
         // Swap buffers
@@ -166,7 +194,7 @@ void Viewer::cleanup() {
         if (mRender->getType() == RENDERER_TYPE::OpenGL) {
             ImGui_ImplOpenGL3_Shutdown();
         } else if (mRender->getType() == RENDERER_TYPE::Vulkan) {
-            // ImGui_ImplVulkan_Shutdown();
+            ImGui_ImplVulkan_Shutdown();
         }
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
@@ -174,9 +202,58 @@ void Viewer::cleanup() {
         // Cleanup GLFW
         glfwDestroyWindow(mWindow);
         mWindow = nullptr;
-
         glfwTerminate();
     }
+}
+
+void Viewer::switchBackend(RENDERER_TYPE type) {
+    if (mRender->getType() == type) return;
+
+    bool winsowStateSaved = false;
+    int windowPosX, windowPosY, windowWidth, windowHeight;
+    std::string iniSettings;
+    if (mWindow) {  // Save window and ImGui state
+        winsowStateSaved = true;
+        glfwGetWindowPos(mWindow, &windowPosX, &windowPosY);
+        glfwGetWindowSize(mWindow, &windowWidth, &windowHeight);
+    }
+    if (ImGui::GetCurrentContext()) {
+        iniSettings = ImGui::SaveIniSettingsToMemory();
+    }
+
+    // Don't need cleanup old render explicitly, it will be cleaned by calling its destructor when reset mRender (old render will be destroyed).
+    cleanup();
+
+    if (type == RENDERER_TYPE::OpenGL) {
+        mRender = std::make_shared<OpenGLRender>();
+    } else if (type == RENDERER_TYPE::Vulkan) {
+        mRender = std::make_shared<VulkanRender>();
+    }
+
+    initWindow();
+
+    if (winsowStateSaved) {
+        glfwSetWindowPos(mWindow, windowPosX, windowPosY);
+        glfwSetWindowSize(mWindow, windowWidth, windowHeight);
+    }
+    
+    mRender->init();
+    initBackend();
+
+    if (!iniSettings.empty()) {
+        ImGui::LoadIniSettingsFromMemory(iniSettings.c_str(), iniSettings.size());
+    }   // Restore ImGui state
+    mRender->setup(mScene);
+
+    // seems must add it
+    if (mRender->getType() == RENDERER_TYPE::OpenGL) {
+        ImGui_ImplOpenGL3_NewFrame();
+    } else if (mRender->getType() == RENDERER_TYPE::Vulkan) {
+        ImGui_ImplVulkan_NewFrame();
+    }
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+    ImGui::Render();
 }
 
 void Viewer::keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -274,6 +351,7 @@ void Viewer::mouseButtonCallback(GLFWwindow* window, int button, int action, int
 }
 
 void Viewer::framebufferSizeCallback(GLFWwindow* window, int width, int height) {
+    // TODO: support Vulkan
     if (width == 0 || height == 0) return;
     glViewport(0, 0, width, height);
     mHeight = height;

@@ -1,5 +1,6 @@
 #include <memory>
 #include "render/render_OpenGL.h"
+#include "render/render_Vulkan.h"
 #include "viewer/viewer.h"
 #include "viewer/camera_perspective.hpp"
 
@@ -7,19 +8,15 @@ int main() {
 
     const int WIDTH = 2560, HEIGHT = 1440;
 
-    std::shared_ptr<Render> renderer = std::make_shared<OpenGLRender>();
     std::shared_ptr<Camera> camera = std::make_shared<PerspectiveCamera>(WIDTH/(float)HEIGHT);
     std::shared_ptr<Scene> scene = std::make_shared<Scene>();
-    Viewer viewer(WIDTH, HEIGHT, renderer, camera, scene);
+    Viewer viewer(WIDTH, HEIGHT, camera, scene);
     // viewer.getScene()->addModel("../assets/SJTU_east_gate_MC/East_Gate_Voxel.obj");
-
-    viewer.init();
-    renderer->init();
-    renderer->setup(viewer.getScene());
+    
+    viewer.switchBackend(RENDERER_TYPE::OpenGL);
 
     viewer.mainLoop();
-    
-    renderer->cleanup();
+
     viewer.cleanup();
     scene->cleanup();
 
