@@ -13,8 +13,40 @@ public:
         auto renderer = viewer.getRender();
         if (!renderer) return;
 
-        ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - 150, ImGui::GetFrameHeight()), ImGuiCond_Always);
+        ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x - 355, ImGui::GetFrameHeight()), ImGuiCond_Always);
         ImGui::Begin(mName.c_str(), &mVisible, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_Tooltip);
+
+        const char* backendTypes[] = { "OpenGL", "Vulkan(Beta)", "Unknown" };
+        static int currentBackendType = (renderer->getType() == RENDERER_TYPE::OpenGL ? 0 : 
+                                        (renderer->getType() == RENDERER_TYPE::Vulkan ? 1 : 2));
+        bool switchRequested = false;
+        RENDERER_TYPE newType = RENDERER_TYPE::None;
+        ImGui::PushItemWidth(200);
+        if (ImGui::BeginCombo("##Backend Type", backendTypes[currentBackendType])) {
+            ImGui::SetNextWindowSize(ImVec2(200, ImGui::GetTextLineHeightWithSpacing() * 2));
+            for (int n = 0; n < IM_ARRAYSIZE(backendTypes) - 1; n++) {
+                bool is_selected = (currentBackendType == n);
+                if (ImGui::Selectable(backendTypes[n], is_selected)) {
+                    if (currentBackendType != n) {
+                        switchRequested = true;
+                        newType = (n == 0) ? RENDERER_TYPE::OpenGL : RENDERER_TYPE::Vulkan;
+                        currentBackendType = n;
+                    }
+                }
+                if (is_selected) {
+                    ImGui::SetItemDefaultFocus();
+                }
+            }
+            ImGui::EndCombo();
+        }
+        ImGui::PopItemWidth();
+
+        if (switchRequested) {
+            viewer.switchBackend(newType);
+            return;
+        }
+
+        ImGui::SameLine();
 
         static std::vector<std::tuple<const char*, const char*, SHADER_TYPE>> shaderButtons = {
             {"W", "Wireframe", SHADER_TYPE::Wireframe},
