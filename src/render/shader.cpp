@@ -1,7 +1,9 @@
 #include "shader.h"
 
-ShaderProgram::ShaderProgram(const std::string& vertexPath, const std::string& fragmentPath, const std::string& geometryPath ) :
-    mVertexPath(vertexPath), mFragmentPath(fragmentPath), mGeometryPath(geometryPath),
+#include <utility>
+
+ShaderProgram::ShaderProgram(std::string  vertexPath, std::string  fragmentPath, std::string  geometryPath ) :
+    mVertexPath(std::move(vertexPath)), mFragmentPath(std::move(fragmentPath)), mGeometryPath(std::move(geometryPath)),
     mBackendType(RENDERER_TYPE::None), 
     mProgram(0), 
     mPipeline(VK_NULL_HANDLE), mPipelineLayout(VK_NULL_HANDLE), mDevice(VK_NULL_HANDLE), mRenderPass(VK_NULL_HANDLE) {}

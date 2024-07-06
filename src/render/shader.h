@@ -10,7 +10,7 @@
 
 class ShaderProgram {
 public:
-    ShaderProgram(const std::string& vertexPath, const std::string& fragmentPath, const std::string& geometryPath = "");
+    ShaderProgram(std::string vertexPath, std::string fragmentPath, std::string geometryPath = "");
     ~ShaderProgram();
 
     void init(RENDERER_TYPE backendType);

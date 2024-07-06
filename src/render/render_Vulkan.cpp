@@ -298,7 +298,9 @@ void VulkanRender::render(const std::shared_ptr<Scene>& scene, const glm::mat4& 
 void VulkanRender::renderIdx(
     const std::shared_ptr<Scene>& scene, 
     const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix
-) {}
+) { 
+    // TODO 
+}
 
 void VulkanRender::createInstance() {
     // Application info
@@ -949,9 +951,9 @@ ImGui_ImplVulkan_InitInfo* VulkanRender::getImGuiInitInfo() {
 }
 
 void VulkanRender::cleanupSwapChain() {
-    for (size_t i = 0; i < mSwapChainFramebuffers.size(); ++i) {
-        if (mSwapChainFramebuffers[i] != VK_NULL_HANDLE) {
-            vkDestroyFramebuffer(mDevice, mSwapChainFramebuffers[i], nullptr);
+    for (auto & mSwapChainFramebuffer : mSwapChainFramebuffers) {
+        if (mSwapChainFramebuffer != VK_NULL_HANDLE) {
+            vkDestroyFramebuffer(mDevice, mSwapChainFramebuffer, nullptr);
         }
     }
     mSwapChainFramebuffers.clear();

@@ -14,7 +14,7 @@ public:
     Viewer(int width, int height, std::shared_ptr<Camera> camera, std::shared_ptr<Scene> scene);
     virtual ~Viewer();
 
-    void init() { throw std::runtime_error("API deprecated"); } // Deprecated, use initWindow() and initBackend() instead
+    static void init() { throw std::runtime_error("API deprecated"); } // Deprecated, use initWindow() and initBackend() instead
     void initWindow();
     void initBackend(); 
     // Need to call by this order: 
