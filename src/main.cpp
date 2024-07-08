@@ -11,7 +11,6 @@ int main() {
     std::shared_ptr<Camera> camera = std::make_shared<PerspectiveCamera>(WIDTH/(float)HEIGHT);
     std::shared_ptr<Scene> scene = std::make_shared<Scene>();
     Viewer viewer(WIDTH, HEIGHT, camera, scene);
-    // viewer.getScene()->addModel("../assets/SJTU_east_gate_MC/East_Gate_Voxel.obj");
     
     viewer.switchBackend(RENDERER_TYPE::OpenGL);
 

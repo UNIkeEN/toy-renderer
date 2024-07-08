@@ -245,6 +245,10 @@ void OpenGLRender::cleanup() {
     mModelResources.clear();
 }
 
+void OpenGLRender::viewportResizeCallback(int width, int height) {
+    glViewport(0, 0, width, height);
+}
+
 void OpenGLRender::loadTexture(const std::string& path, GLuint& textureID) {
     // Learn from: https://learnopengl-cn.github.io/01%20Getting%20started/06%20Textures/
 

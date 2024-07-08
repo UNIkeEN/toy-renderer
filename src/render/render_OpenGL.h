@@ -29,6 +29,7 @@ public:
         const glm::mat4& viewMatrix, const glm::mat4& projectionMatrix
     ) override;
     void cleanup() override;
+    void viewportResizeCallback(int width, int height) override;
 
     [[nodiscard]] RENDERER_TYPE getType() const override;
     

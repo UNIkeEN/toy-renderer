@@ -357,9 +357,9 @@ void Viewer::mouseButtonCallback(GLFWwindow* window, int button, int action, int
 void Viewer::framebufferSizeCallback(GLFWwindow* window, int width, int height) {
     // TODO: support Vulkan
     if (width == 0 || height == 0) return;
-    glViewport(0, 0, width, height);
     mHeight = height;
     mWidth = width;
+    mRender->viewportResizeCallback(width, height);
     mCamera->setAspectRatio(static_cast<float>(width) / static_cast<float>(height));
 }
 

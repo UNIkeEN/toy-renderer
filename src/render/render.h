@@ -36,7 +36,7 @@ public:
     virtual void cleanup() = 0;
 
     // Process viewport resize
-    // virtual void viewportResizeCallback(int width, int height) = 0;
+    virtual void viewportResizeCallback(int width, int height) = 0;
 
     [[nodiscard]] virtual RENDERER_TYPE getType() const { return RENDERER_TYPE::None; }
 
